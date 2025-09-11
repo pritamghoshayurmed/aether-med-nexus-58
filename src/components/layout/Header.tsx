@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -13,6 +14,7 @@ const navigation = [
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
   return (
   <header className="bg-background/90 backdrop-blur-lg shadow fixed top-0 left-0 w-full z-50 h-16 flex items-center">
       <div className="container mx-auto px-2 sm:px-4 lg:px-8">
@@ -45,10 +47,10 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-2 sm:space-x-4">
-            <MedicalButton variant="ghost" size="sm">
+            <MedicalButton variant="ghost" size="sm" onClick={() => navigate('/login')}>
               Sign In
             </MedicalButton>
-            <MedicalButton variant="medical" size="sm">
+            <MedicalButton variant="medical" size="sm" onClick={() => navigate('/login')}>
               Get Started
             </MedicalButton>
           </div>
@@ -84,10 +86,10 @@ const Header = () => {
               </a>
             ))}
             <div className="pt-2 flex flex-col gap-2">
-              <MedicalButton variant="ghost" className="w-full">
+              <MedicalButton variant="ghost" className="w-full" onClick={() => { setIsMenuOpen(false); navigate('/login'); }}>
                 Sign In
               </MedicalButton>
-              <MedicalButton variant="medical" className="w-full">
+              <MedicalButton variant="medical" className="w-full" onClick={() => { setIsMenuOpen(false); navigate('/login'); }}>
                 Get Started
               </MedicalButton>
             </div>
