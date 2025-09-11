@@ -1,41 +1,44 @@
 import { useState } from "react";
-import { Heart, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { cn } from "@/lib/utils";
 
+const navigation = [
+  { name: "Features", href: "/#features" },
+  { name: "For Patients", href: "/#patients" },
+  { name: "For Doctors", href: "/#doctors" },
+  { name: "For Hospitals", href: "/#hospitals" },
+  { name: "Contact", href: "/#contact" },
+];
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const navigation = [
-    { name: "Features", href: "#features" },
-    { name: "For Patients", href: "#patients" },
-    { name: "For Doctors", href: "#doctors" },
-    { name: "For Hospitals", href: "#hospitals" },
-    { name: "Contact", href: "#contact" },
-  ];
-
   return (
-    <header className="fixed top-0 w-full z-50 glass-card border-b border-white/10">
+  <header className="bg-background/80 backdrop-blur-lg shadow fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="medical-glow p-2 rounded-lg">
-              <Heart className="h-8 w-8 text-primary" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Kabiraj AI Logo"
+              width={56}
+              height={56}
+              className="mr-4"
+            />
             <div>
-              <h1 className="text-xl font-bold gradient-text">MediConnect</h1>
+              <h1 className="text-xl font-bold gradient-text">KABIRAJ AI</h1>
               <p className="text-xs text-muted-foreground">Next-Gen Telemedicine</p>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 justify-center flex-1">
             {navigation.map((item) => (
               <a
                 key={item.name}
                 href={item.href}
-                className="text-foreground hover:text-primary transition-colors duration-200 font-medium"
+                className="text-white text-lg font-semibold hover:text-primary transition-colors duration-200"
               >
                 {item.name}
               </a>
@@ -64,7 +67,7 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+  {/* Mobile Navigation */}
         <div
           className={cn(
             "md:hidden overflow-hidden transition-all duration-300",
