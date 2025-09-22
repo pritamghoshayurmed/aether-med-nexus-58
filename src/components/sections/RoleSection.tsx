@@ -82,7 +82,7 @@ const RoleSection = () => {
   ];
 
   return (
-    <section id="features" className="py-24 relative">
+    <section className="py-24 relative">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -169,7 +169,7 @@ const RoleSection = () => {
                 Join thousands of healthcare professionals already using our platform 
                 to deliver better patient care.
               </p>
-              <MedicalButton variant="medical" size="lg">
+              <MedicalButton variant="medical" size="lg" onClick={() => navigate('/register')}>
                 Start Free Trial
               </MedicalButton>
             </MedicalCardContent>

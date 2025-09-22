@@ -25,7 +25,8 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-background to-background/50">
+    // Add an id so the header link targets this section and add a scroll margin to account for fixed header
+    <section id="features" className="py-24 bg-gradient-to-b from-background to-background/50 scroll-mt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -86,9 +87,11 @@ const FeaturesSection = () => {
                 <p className="text-sm text-muted-foreground">
                   Call now - Free consultation available
                 </p>
-                <MedicalButton variant="medical" size="lg" className="group">
-                  <PhoneCall className="mr-2 h-5 w-5" />
-                  Call AI Assistant
+                <MedicalButton asChild variant="medical" size="lg" className="group">
+                  <a href="tel:+919876543210" rel="noopener noreferrer">
+                    <PhoneCall className="mr-2 h-5 w-5" />
+                    Call AI Assistant
+                  </a>
                 </MedicalButton>
               </div>
             </div>

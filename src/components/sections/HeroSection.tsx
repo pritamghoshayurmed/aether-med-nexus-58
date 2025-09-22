@@ -1,9 +1,12 @@
 import { ArrowRight, Play, Shield, Zap, Users } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
+import { useNavigate } from "react-router-dom";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { MedicalCard } from "@/components/ui/medical-card";
 import heroImage from "@/assets/telemedicine-hero.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   const stats = [
     { icon: Users, label: "Active Users", value: "50+" },
     { icon: Shield, label: "HIPAA Compliant", value: "100%" },
@@ -44,14 +47,30 @@ const HeroSection = () => {
               intelligence, real-time updates, and secure digital health workflows.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <MedicalButton variant="medical" size="xl" className="group">
+              <MedicalButton variant="medical" size="xl" className="group" onClick={() => navigate('/register')}>
                 Start Your Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
               </MedicalButton>
-              <MedicalButton variant="glass" size="xl" className="group">
-                <Play className="mr-2 h-5 w-5" />
-                Watch Demo
-              </MedicalButton>
+              {/* Dialog-based responsive video modal */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <MedicalButton variant="glass" size="xl" className="group">
+                    <Play className="mr-2 h-5 w-5" />
+                    Watch Demo
+                  </MedicalButton>
+                </DialogTrigger>
+                <DialogContent className="max-w-5xl w-full p-0 bg-transparent shadow-none">
+                  <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                    <iframe
+                      src="https://www.youtube.com/embed/UzmBWWDQZIk?autoplay=1"
+                      title="Demo Video"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="absolute left-0 top-0 w-full h-full rounded-lg"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 

@@ -46,7 +46,7 @@ const Header = () => {
             />
             <div className="flex flex-col">
               <h1 className="text-base sm:text-xl font-bold gradient-text leading-tight">KABIRAJ AI</h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Next-Gen Telemedicine</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">The Digital Sage for Modern Problems</p>
             </div>
           </div>
 
@@ -69,7 +69,7 @@ const Header = () => {
             <MedicalButton variant="ghost" size="sm" onClick={() => navigate('/login')}>
               Sign In
             </MedicalButton>
-            <MedicalButton variant="medical" size="sm" onClick={() => navigate('/login')}>
+            <MedicalButton variant="medical" size="sm" onClick={() => navigate('/register')}>
               Get Started
             </MedicalButton>
           </div>
