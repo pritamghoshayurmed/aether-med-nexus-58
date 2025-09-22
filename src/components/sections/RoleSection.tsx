@@ -100,11 +100,11 @@ const RoleSection = () => {
         {/* Role Cards Grid */}
         <div className="role-card-grid">
           {roles.map((role) => (
-            <MedicalCard
-              key={role.id}
-              variant="glass"
-              className="role-card group"
-            >
+            <div key={role.id} id={role.id} className="role-card-anchor">
+              <MedicalCard
+                variant="glass"
+                className="role-card group"
+              >
               <MedicalCardHeader>
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="p-3 rounded-xl bg-primary/20 group-hover:bg-primary/30 transition-colors">
@@ -153,7 +153,8 @@ const RoleSection = () => {
                   {role.buttonText}
                 </MedicalButton>
               </MedicalCardContent>
-            </MedicalCard>
+              </MedicalCard>
+            </div>
           ))}
         </div>
 

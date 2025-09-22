@@ -6,16 +6,33 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Features", href: "/#features" },
-  { name: "For Patients", href: "/#patients" },
-  { name: "For Doctors", href: "/#doctors" },
-  { name: "For Administrators", href: "/#administrators" },
-  { name: "For Hospitals", href: "/#hospitals" },
+  { name: "For Patients", href: "/#patient" },
+  { name: "For Doctors", href: "/#doctor" },
+  { name: "For Administrators", href: "/#admin" },
+  { name: "For Hospitals", href: "/#hospital" },
   { name: "Contact", href: "/#contact" },
 ];
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // If it's an in-page anchor like '/#patients' or '#patients', smooth scroll to it
+    e.preventDefault();
+    const anchor = href.startsWith("/#") ? href.replace("/#", "") : href.replace("#", "");
+    const el = document.getElementById(anchor);
+    if (el) {
+      // Close mobile menu if open
+      setIsMenuOpen(false);
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    // If element not found, navigate to the path (useful when on other routes)
+    setIsMenuOpen(false);
+    navigate(href);
+  };
   return (
   <header className="bg-background/90 backdrop-blur-lg shadow fixed top-0 left-0 w-full z-50 h-16 flex items-center">
       <div className="container mx-auto px-2 sm:px-4 lg:px-8">
@@ -39,6 +56,7 @@ const Header = () => {
               <a
                 key={item.name}
                 href={item.href}
+                onClick={(e) => handleNavClick(e, item.href)}
                 className="text-white text-base sm:text-lg font-semibold hover:text-primary transition-colors duration-200"
               >
                 {item.name}
@@ -81,7 +99,7 @@ const Header = () => {
                 key={item.name}
                 href={item.href}
                 className="block text-white text-base font-semibold hover:text-primary transition-colors duration-200 py-2"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={(e) => handleNavClick(e, item.href)}
               >
                 {item.name}
               </a>

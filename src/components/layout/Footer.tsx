@@ -45,7 +45,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
+          <div id="contact">
             <h4 className="text-sm font-semibold text-white mb-4">Get In Touch</h4>
             <div className="text-sm text-neutral-300 space-y-3">
               

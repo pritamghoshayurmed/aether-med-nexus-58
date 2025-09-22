@@ -39,11 +39,11 @@ const Login = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center space-x-3 mb-4">
             <div className="medical-glow p-3 rounded-xl">
-              <Heart className="h-10 w-10 text-primary" />
+              <img src="/logo.png" alt="Kabiraj AI" className="h-20 w-20 object-contain" />
             </div>
             <div className="text-left">
-              <h1 className="text-2xl font-bold gradient-text">MediConnect</h1>
-              <p className="text-sm text-muted-foreground">Secure Healthcare Access</p>
+              <h1 className="text-2xl font-bold gradient-text">Kabiraj AI</h1>
+              <p className="text-sm text-muted-foreground">The Digital Sage for Modern Problems</p>
             </div>
           </div>
         </div>
