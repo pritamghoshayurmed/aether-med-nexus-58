@@ -98,13 +98,12 @@ const RoleSection = () => {
         </div>
 
         {/* Role Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
-          {roles.map((role, index) => (
+        <div className="role-card-grid">
+          {roles.map((role) => (
             <MedicalCard
               key={role.id}
               variant="glass"
-              className={`group hover:scale-105 transition-all duration-500 ${role.gradient} animate-slide-in`}
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="role-card group"
             >
               <MedicalCardHeader>
                 <div className="flex items-center space-x-4 mb-4">
@@ -121,41 +120,38 @@ const RoleSection = () => {
               </MedicalCardHeader>
 
               <MedicalCardContent>
-                <div className="space-y-4">
+                <ul className="space-y-4 mb-8">
                   {role.features.map((feature, featureIndex) => (
-                    <div 
+                    <li 
                       key={featureIndex} 
-                      className="flex items-center space-x-3 group-hover:translate-x-2 transition-transform duration-300"
-                      style={{ transitionDelay: `${featureIndex * 50}ms` }}
+                      className="flex items-center space-x-3"
                     >
                       <div className="p-2 rounded-lg bg-primary/10">
                         <feature.icon className="h-5 w-5 text-primary" />
                       </div>
                       <span className="text-foreground font-medium">{feature.text}</span>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
 
-                <div className="mt-8">
-                  <MedicalButton
-                    variant="medical"
-                    className="w-full group-hover:shadow-lg transition-all duration-300"
-                    onClick={() => {
-                      if (role.id === "patient") {
-                        navigate("/dashboard/patient");
-                      } else if (role.id === "doctor") {
-                        navigate("/dashboard/doctor");
-                      } else if (role.id === "hospital") {
-                        navigate("/dashboard/hospital");
-                      } else if (role.id === "admin") {
-                        navigate("/dashboard/admin");
-                      }
-                      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-                    }}
-                  >
-                    {role.buttonText}
-                  </MedicalButton>
-                </div>
+                <MedicalButton
+                  variant="medical"
+                  className="w-full group-hover:shadow-lg transition-all duration-300"
+                  onClick={() => {
+                    if (role.id === "patient") {
+                      navigate("/dashboard/patient");
+                    } else if (role.id === "doctor") {
+                      navigate("/dashboard/doctor");
+                    } else if (role.id === "hospital") {
+                      navigate("/dashboard/hospital");
+                    } else if (role.id === "admin") {
+                      navigate("/dashboard/admin");
+                    }
+                    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+                  }}
+                >
+                  {role.buttonText}
+                </MedicalButton>
               </MedicalCardContent>
             </MedicalCard>
           ))}

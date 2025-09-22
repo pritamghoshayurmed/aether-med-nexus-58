@@ -5,13 +5,13 @@ import heroImage from "@/assets/telemedicine-hero.jpg";
 
 const HeroSection = () => {
   const stats = [
-    { icon: Users, label: "Active Users", value: "50K+" },
+    { icon: Users, label: "Active Users", value: "50+" },
     { icon: Shield, label: "HIPAA Compliant", value: "100%" },
     { icon: Zap, label: "Uptime", value: "99.9%" },
   ];
 
   return (
-  <section className="relative w-screen min-h-screen flex items-center justify-center overflow-hidden left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+  <section className="relative w-screen min-h-[70vh] md:min-h-screen flex items-start md:items-center justify-center overflow-hidden left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] pt-28 md:pt-0">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-background">
         <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-background/80" />
@@ -23,18 +23,18 @@ const HeroSection = () => {
       </div>
 
       {/* Floating Elements */}
-      <div className="absolute top-20 left-10 animate-float">
+      <div className="absolute top-20 left-10">
         <div className="w-20 h-20 rounded-full bg-primary/20 blur-xl" />
       </div>
-      <div className="absolute bottom-32 right-16 animate-float" style={{ animationDelay: "1s" }}>
+      <div className="absolute bottom-32 right-16">
         <div className="w-32 h-32 rounded-full bg-primary-glow/20 blur-xl" />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center">
           {/* Main Hero Content */}
-          <div className="max-w-4xl mx-auto mb-12">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+          <div className="max-w-4xl mx-auto mb-8 px-4 sm:px-0">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-snug sm:leading-tight">
               <span className="gradient-text">Next-Generation</span>
               <br />
               Telemedicine Platform
@@ -46,7 +46,7 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <MedicalButton variant="medical" size="xl" className="group">
                 Start Your Journey
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </MedicalButton>
               <MedicalButton variant="glass" size="xl" className="group">
                 <Play className="mr-2 h-5 w-5" />
@@ -61,8 +61,7 @@ const HeroSection = () => {
               <MedicalCard
                 key={stat.label}
                 variant="glass"
-                className="text-center animate-slide-in"
-                style={{ animationDelay: `${index * 0.2}s` }}
+                className="text-center"
               >
                 <div className="flex flex-col items-center space-y-4">
                   <div className="p-3 rounded-lg bg-primary/20">

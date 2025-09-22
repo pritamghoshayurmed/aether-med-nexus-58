@@ -1,4 +1,5 @@
 import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/sections/HeroSection";
 import RoleSection from "@/components/sections/RoleSection";
 
@@ -10,6 +11,7 @@ const Index = () => {
         <HeroSection />
         <RoleSection />
       </main>
+      <Footer />
     </div>
   );
 };

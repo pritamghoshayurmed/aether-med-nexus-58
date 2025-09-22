@@ -8,6 +8,7 @@ const navigation = [
   { name: "Features", href: "/#features" },
   { name: "For Patients", href: "/#patients" },
   { name: "For Doctors", href: "/#doctors" },
+  { name: "For Administrators", href: "/#administrators" },
   { name: "For Hospitals", href: "/#hospitals" },
   { name: "Contact", href: "/#contact" },
 ];
