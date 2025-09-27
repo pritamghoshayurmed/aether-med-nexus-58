@@ -14,39 +14,39 @@ const HeroSection = () => {
   ];
 
   return (
-  <section className="relative w-screen min-h-[70vh] md:min-h-screen flex items-start md:items-center justify-center overflow-hidden left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] pt-28 md:pt-0">
+  <section className="relative w-screen min-h-screen flex items-center justify-center overflow-hidden left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] pt-16 sm:pt-20 pb-8">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-background">
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-background/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/90" />
         <img
           src={heroImage}
           alt="Telemedicine Future"
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
+          className="absolute inset-0 w-full h-full object-cover opacity-15"
         />
       </div>
 
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-10">
-        <div className="w-20 h-20 rounded-full bg-primary/20 blur-xl" />
+      {/* Floating Elements - Optimized for mobile */}
+      <div className="absolute top-16 left-4 sm:top-20 sm:left-10">
+        <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-primary/20 blur-xl" />
       </div>
-      <div className="absolute bottom-32 right-16">
-        <div className="w-32 h-32 rounded-full bg-primary-glow/20 blur-xl" />
+      <div className="absolute bottom-24 right-4 sm:bottom-32 sm:right-16">
+        <div className="w-16 h-16 sm:w-32 sm:h-32 rounded-full bg-primary-glow/20 blur-xl" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="text-center">
           {/* Main Hero Content */}
-          <div className="max-w-4xl mx-auto mb-8 px-4 sm:px-0">
-            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-snug sm:leading-tight">
+          <div className="max-w-4xl mx-auto mb-8 sm:mb-12">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
               <span className="gradient-text">Next-Generation</span>
               <br />
-              Telemedicine Platform
+              <span className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl">Telemedicine Platform</span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed px-2">
               Connecting patients, doctors, hospitals, and administrators with AI-powered 
               intelligence, real-time updates, and secure digital health workflows.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4 sm:px-0">
               <MedicalButton variant="medical" size="xl" className="group" onClick={() => navigate('/register')}>
                 Start Your Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -74,21 +74,21 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          {/* Stats Cards - Mobile-First */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto px-4 sm:px-0">
             {stats.map((stat, index) => (
               <MedicalCard
                 key={stat.label}
                 variant="glass"
-                className="text-center"
+                className="text-center p-4 sm:p-6"
               >
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="p-3 rounded-lg bg-primary/20">
-                    <stat.icon className="h-8 w-8 text-primary" />
+                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
+                  <div className="p-2 sm:p-3 rounded-lg bg-primary/20">
+                    <stat.icon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-primary">{stat.value}</p>
-                    <p className="text-muted-foreground font-medium">{stat.label}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-primary">{stat.value}</p>
+                    <p className="text-sm sm:text-base text-muted-foreground font-medium">{stat.label}</p>
                   </div>
                 </div>
               </MedicalCard>

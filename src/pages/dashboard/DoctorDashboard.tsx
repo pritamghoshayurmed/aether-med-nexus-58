@@ -43,17 +43,17 @@ const DoctorDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-background p-4 pb-24">
+    <div className="min-h-screen bg-gradient-background p-3 sm:p-4 pb-20 sm:pb-24">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 leading-tight">
               Welcome, <span className="gradient-text">Dr. Sarah Johnson</span>
             </h1>
-            <p className="text-muted-foreground">Cardiologist • Today's Schedule</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Cardiologist • Today's Schedule</p>
           </div>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
+          <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
             <div className="flex items-center space-x-2">
               <div className={`w-3 h-3 rounded-full ${
                 availabilityStatus === "available" ? "bg-green-500" :

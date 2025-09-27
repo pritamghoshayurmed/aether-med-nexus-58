@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const medicalCardVariants = cva(
-  "rounded-lg text-card-foreground shadow-sm transition-all duration-300",
+  "rounded-lg text-card-foreground shadow-sm transition-all duration-300 touch-manipulation",
   {
     variants: {
       variant: {
@@ -14,10 +14,10 @@ const medicalCardVariants = cva(
         floating: "glass-card animate-float",
       },
       size: {
-        default: "p-6",
-        sm: "p-4",
-        lg: "p-8",
-        xl: "p-12",
+        default: "p-4 sm:p-6",
+        sm: "p-3 sm:p-4",
+        lg: "p-6 sm:p-8",
+        xl: "p-8 sm:p-12",
       },
     },
     defaultVariants: {

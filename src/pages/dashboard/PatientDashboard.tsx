@@ -57,29 +57,30 @@ const PatientDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-background p-4 md:p-6 pb-24">
+    <div className="min-h-screen bg-gradient-background p-3 sm:p-4 md:p-6 pb-20 sm:pb-24">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 leading-tight">
               Good morning, <span className="gradient-text">Sarah</span>
             </h1>
-            <p className="text-muted-foreground">Here's your health overview for today</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Here's your health overview for today</p>
           </div>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <MedicalButton variant="ghost" size="icon">
+          <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
+            <MedicalButton variant="ghost" size="icon" className="min-w-[44px] min-h-[44px]">
               <Bell className="h-5 w-5" />
             </MedicalButton>
-            <MedicalButton variant="medical">
+            <MedicalButton variant="medical" className="flex-1 sm:flex-initial min-h-[44px]">
               <Calendar className="mr-2 h-4 w-4" />
-              Book Appointment
+              <span className="hidden sm:inline">Book Appointment</span>
+              <span className="sm:hidden">Book</span>
             </MedicalButton>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {[
             { icon: Video, label: "Video Call", variant: "medical" as const, path: "/dashboard/patient/video-call" },
             { icon: Brain, label: "AI Chat", variant: "glass" as const, path: "/dashboard/patient/ai-chat" },
@@ -93,18 +94,18 @@ const PatientDashboard = () => {
             <MedicalButton
               key={action.label}
               variant={action.variant}
-              className="h-20 flex-col space-y-2"
+              className="min-h-[80px] sm:h-20 flex-col space-y-2 p-3 touch-manipulation"
               onClick={() => window.location.href = action.path}
             >
-              <action.icon className="h-6 w-6" />
-              <span className="text-sm">{action.label}</span>
+              <action.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="text-xs sm:text-sm text-center leading-tight">{action.label}</span>
             </MedicalButton>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Upcoming Appointments */}
             <MedicalCard variant="glass">
               <MedicalCardHeader>

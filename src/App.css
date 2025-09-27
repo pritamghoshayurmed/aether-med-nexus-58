@@ -41,38 +41,59 @@
   color: #888;
 }
 
+/* Mobile-first role card grid - simplified for touch devices */
 .role-card-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 2rem;
-  perspective: 1500px;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  perspective: none; /* Disable 3D effects on mobile for performance */
 }
 
 .role-card {
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
-  will-change: transform, box-shadow;
-  transform-style: preserve-3d;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+  transform: none; /* Reset 3D transforms on mobile */
 }
 
-.role-card:hover {
-  transform: translateY(-10px) scale(1.02) rotateX(5deg) rotateY(0deg);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  z-index: 20;
+.role-card:active {
+  transform: scale(0.98);
 }
 
+/* Tablet breakpoint */
+@media (min-width: 768px) {
+  .role-card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .role-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Desktop breakpoint - restore 3D effects for better performance devices */
 @media (min-width: 1024px) {
   .role-card-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 0;
+    perspective: 1500px;
   }
 
   .role-card {
     transform: translateY(0) scale(1) rotateX(15deg) rotateY(-25deg);
     box-shadow: -10px 10px 20px rgba(0,0,0,0.1);
+    transform-style: preserve-3d;
   }
   
   .role-card:not(:first-child) {
     margin-left: -10%;
+  }
+  
+  .role-card:hover {
+    transform: translateY(-10px) scale(1.02) rotateX(5deg) rotateY(0deg);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    z-index: 20;
   }
 
   .role-card:nth-child(1) { z-index: 4; }

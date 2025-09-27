@@ -65,43 +65,37 @@ const BottomNavigation = ({ userRole }: BottomNavigationProps) => {
   const currentPath = location.pathname;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-md border-t border-border/50">
-      <div className="flex justify-around items-center py-2 px-4 max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-t border-border/50 shadow-lg">
+      <div className="flex justify-around items-center py-1 px-2 max-w-md mx-auto safe-area-bottom">
         {navItems.map((item, index) => {
-          const isActive = currentPath === item.path || currentPath.startsWith(item.path + "/");
-          const isCenterItem = index === 2; // Middle item gets special treatment
+          // Home item (index 0) should only be active on exact path match
+          // Other items can be active on exact match or sub-paths
+          const isActive = index === 0 
+            ? currentPath === item.path
+            : currentPath === item.path || currentPath.startsWith(item.path + "/");
           
           return (
             <button
               key={item.key}
               onClick={() => navigate(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-300",
-                "hover:scale-110 active:scale-95",
-                isCenterItem && "relative -top-4 p-3 bg-gradient-primary shadow-lg shadow-primary/30",
-                isActive && !isCenterItem && "text-primary bg-primary/10",
-                !isActive && !isCenterItem && "text-muted-foreground hover:text-primary"
+                "flex flex-col items-center justify-center min-w-[44px] min-h-[60px] px-2 py-1 rounded-xl transition-all duration-300",
+                "hover:scale-105 active:scale-95 touch-manipulation",
+                isActive && "text-primary bg-primary/15 shadow-sm",
+                !isActive && "text-muted-foreground hover:text-primary hover:bg-primary/5"
               )}
             >
               <div className={cn(
-                "p-2 rounded-full transition-all duration-300",
-                isCenterItem && "bg-white/10 backdrop-blur-sm",
-                isCenterItem && isActive && "bg-white/20",
-                !isCenterItem && isActive && "bg-primary/20"
+                "p-2 rounded-lg transition-all duration-300 flex items-center justify-center",
+                isActive && "bg-primary/20 shadow-sm"
               )}>
-                <item.icon className={cn(
-                  "transition-all duration-300",
-                  isCenterItem ? "h-6 w-6 text-white" : "h-5 w-5"
-                )} />
+                <item.icon className="h-5 w-5 transition-all duration-300" />
               </div>
-              <span className={cn(
-                "text-xs font-medium mt-1 transition-all duration-300",
-                isCenterItem ? "text-white text-[10px]" : "text-[10px]"
-              )}>
+              <span className="text-[10px] font-medium mt-1 leading-tight text-center max-w-[60px] truncate">
                 {item.label}
               </span>
-              {isActive && !isCenterItem && (
-                <div className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full" />
+              {isActive && (
+                <div className="absolute top-0 w-8 h-1 bg-primary rounded-b-full" />
               )}
             </button>
           );

@@ -82,23 +82,23 @@ const RoleSection = () => {
   ];
 
   return (
-    <section className="py-24 relative">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 relative">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight">
             <span className="gradient-text">Tailored Solutions</span>
             <br />
-            for Every Healthcare Role
+            <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl">for Every Healthcare Role</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-2">
             Our platform provides specialized interfaces and tools designed for each stakeholder 
             in the healthcare ecosystem, powered by cutting-edge AI and real-time connectivity.
           </p>
         </div>
 
         {/* Role Cards Grid */}
-        <div className="role-card-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           {roles.map((role) => (
             <div key={role.id} id={role.id} className="role-card-anchor">
               <MedicalCard

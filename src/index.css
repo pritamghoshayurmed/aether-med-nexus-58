@@ -1,3 +1,5 @@
+@import './styles/mobile-optimizations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -183,5 +185,98 @@
   @keyframes pulse-glow {
     from { box-shadow: 0 0 20px hsla(var(--primary), 0.3); }
     to { box-shadow: 0 0 40px hsla(var(--primary-glow), 0.6); }
+  }
+
+  /* Mobile-First Touch-Friendly Components */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Mobile-First Typography */
+  .mobile-heading {
+    @apply text-2xl font-bold leading-tight;
+  }
+  
+  @screen sm {
+    .mobile-heading {
+      @apply text-3xl;
+    }
+  }
+  
+  @screen lg {
+    .mobile-heading {
+      @apply text-4xl;
+    }
+  }
+
+  /* Mobile-First Card Layouts */
+  .mobile-card {
+    @apply p-4 rounded-xl;
+  }
+  
+  @screen sm {
+    .mobile-card {
+      @apply p-6;
+    }
+  }
+  
+  @screen lg {
+    .mobile-card {
+      @apply p-8;
+    }
+  }
+
+  /* Mobile-First Grid Systems */
+  .mobile-grid {
+    @apply grid grid-cols-1 gap-4;
+  }
+  
+  @screen sm {
+    .mobile-grid {
+      @apply grid-cols-2 gap-6;
+    }
+  }
+  
+  @screen lg {
+    .mobile-grid {
+      @apply grid-cols-3 gap-8;
+    }
+  }
+
+  /* Mobile-First Spacing */
+  .mobile-section {
+    @apply py-8 px-4;
+  }
+  
+  @screen sm {
+    .mobile-section {
+      @apply py-12 px-6;
+    }
+  }
+  
+  @screen lg {
+    .mobile-section {
+      @apply py-16 px-8;
+    }
+  }
+
+  /* Improved Touch Interactions */
+  .mobile-button {
+    @apply touch-target transition-all duration-200 active:scale-95;
+  }
+  
+  @screen hover {
+    .mobile-button:hover {
+      @apply scale-105;
+    }
+  }
+
+  /* Mobile Navigation Optimizations */
+  .mobile-nav {
+    @apply touch-target p-3 rounded-lg;
   }
 }
