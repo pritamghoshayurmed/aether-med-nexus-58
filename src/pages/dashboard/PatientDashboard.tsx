@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { 
   Calendar, 
-  Video, 
   Heart, 
   Brain, 
   Bell,
@@ -82,7 +81,6 @@ const PatientDashboard = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {[
-            { icon: Video, label: "Video Call", variant: "medical" as const, path: "/dashboard/patient/video-call" },
             { icon: Brain, label: "AI Chat", variant: "glass" as const, path: "/dashboard/patient/ai-chat" },
             { icon: Bed, label: "Hospital Beds", variant: "glass" as const, path: "/dashboard/patient/hospital-beds" },
             { icon: Search, label: "Find Doctor", variant: "glass" as const, path: "/dashboard/patient/appointments" },

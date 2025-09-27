@@ -28,7 +28,7 @@ const BottomNavigation = ({ userRole }: BottomNavigationProps) => {
         return [
           { icon: Home, label: "Home", path: "/dashboard/patient", key: "home" },
           { icon: Calendar, label: "Appointments", path: "/dashboard/patient/appointments", key: "appointments" },
-          { icon: Activity, label: "Vitals", path: "/dashboard/patient/vitals", key: "vitals" },
+          { icon: Stethoscope, label: "Doctor Connect", path: "/dashboard/patient/doctor-chat", key: "doctor-chat" },
           { icon: MessageSquare, label: "AI Chat", path: "/dashboard/patient/ai-chat", key: "ai-chat" },
           { icon: Settings, label: "Settings", path: "/dashboard/patient/settings", key: "settings" },
         ];
