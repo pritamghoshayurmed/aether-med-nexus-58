@@ -37,6 +37,13 @@ import Staff from "./pages/dashboard/hospital/Staff";
 import Reports from "./pages/dashboard/hospital/Reports";
 import SupplyChain from "./pages/dashboard/hospital/SupplyChain";
 import NotFound from "./pages/NotFound";
+import AppointmentBooking from "./pages/appointment/AppointmentBooking";
+import DoctorProfile from "./pages/appointment/DoctorProfile";
+import AppointmentSchedule from "./pages/appointment/AppointmentSchedule";
+import AppointmentConfirmation from "./pages/appointment/AppointmentConfirmation";
+import AppointmentSuccess from "./pages/appointment/AppointmentSuccess";
+import AppointmentManagement from "./pages/appointment/AppointmentManagement";
+import AppointmentReschedule from "./pages/appointment/AppointmentReschedule";
 
 const queryClient = new QueryClient();
 
@@ -56,7 +63,7 @@ const App = () => (
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-and-condition" element={<TermsAndCondition />} />
             <Route path="/dashboard/patient" element={<PatientDashboard />} />
-            <Route path="/dashboard/patient/appointments" element={<PatientAppointments />} />
+            <Route path="/dashboard/patient/appointments" element={<AppointmentManagement />} />
             <Route path="/dashboard/patient/vitals" element={<PatientVitals />} />
             <Route path="/dashboard/patient/ai-chat" element={<PatientAIChat />} />
             <Route path="/dashboard/patient/settings" element={<PatientSettings />} />
@@ -84,6 +91,14 @@ const App = () => (
             <Route path="/dashboard/admin/compliance" element={<SuperAdminDashboard />} />
             <Route path="/dashboard/admin/supply-chain" element={<SuperAdminDashboard />} />
             <Route path="/dashboard/admin/complaints" element={<SuperAdminDashboard />} />
+            {/* Appointment Booking Routes */}
+            <Route path="/appointment/booking" element={<AppointmentBooking />} />
+            <Route path="/appointment/doctor/:doctorId" element={<DoctorProfile />} />
+            <Route path="/appointment/doctor/:doctorId/schedule" element={<AppointmentSchedule />} />
+            <Route path="/appointment/doctor/:doctorId/confirmation" element={<AppointmentConfirmation />} />
+            <Route path="/appointment/success" element={<AppointmentSuccess />} />
+            <Route path="/appointment/management" element={<AppointmentManagement />} />
+            <Route path="/appointment/reschedule/:appointmentId" element={<AppointmentReschedule />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

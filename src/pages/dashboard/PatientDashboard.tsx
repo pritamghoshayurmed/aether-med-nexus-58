@@ -70,7 +70,11 @@ const PatientDashboard = () => {
             <MedicalButton variant="ghost" size="icon" className="min-w-[44px] min-h-[44px]">
               <Bell className="h-5 w-5" />
             </MedicalButton>
-            <MedicalButton variant="medical" className="flex-1 sm:flex-initial min-h-[44px]">
+            <MedicalButton 
+              variant="medical" 
+              className="flex-1 sm:flex-initial min-h-[44px]"
+              onClick={() => window.location.href = '/appointment/booking'}
+            >
               <Calendar className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Book Appointment</span>
               <span className="sm:hidden">Book</span>
@@ -83,11 +87,11 @@ const PatientDashboard = () => {
           {[
             { icon: Brain, label: "AI Chat", variant: "glass" as const, path: "/dashboard/patient/ai-chat" },
             { icon: Bed, label: "Hospital Beds", variant: "glass" as const, path: "/dashboard/patient/hospital-beds" },
-            { icon: Search, label: "Find Doctor", variant: "glass" as const, path: "/dashboard/patient/appointments" },
+            { icon: Search, label: "Book Appointment", variant: "glass" as const, path: "/appointment/booking" },
+            { icon: Calendar, label: "My Appointments", variant: "glass" as const, path: "/appointment/management" },
             { icon: Pill, label: "Prescriptions", variant: "glass" as const, path: "/dashboard/patient/prescriptions" },
             { icon: Heart, label: "Medical Records", variant: "glass" as const, path: "/dashboard/patient/medical-records" },
             { icon: Activity, label: "Check Vitals", variant: "glass" as const, path: "/dashboard/patient/vitals" },
-            { icon: Calendar, label: "Doctor Chat", variant: "glass" as const, path: "/dashboard/patient/doctor-chat" },
           ].map((action, index) => (
             <MedicalButton
               key={action.label}
@@ -107,14 +111,23 @@ const PatientDashboard = () => {
             {/* Upcoming Appointments */}
             <MedicalCard variant="glass">
               <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5 text-primary" />
-                  Upcoming Appointments
-                </MedicalCardTitle>
+                <div className="flex items-center justify-between">
+                  <MedicalCardTitle className="flex items-center">
+                    <Calendar className="mr-2 h-5 w-5 text-primary" />
+                    Upcoming Appointments
+                  </MedicalCardTitle>
+                  <MedicalButton 
+                    size="sm" 
+                    variant="medical"
+                    onClick={() => window.location.href = '/appointment/booking'}
+                  >
+                    Book New
+                  </MedicalButton>
+                </div>
               </MedicalCardHeader>
               <MedicalCardContent>
                 <div className="space-y-4">
-                  {upcomingAppointments.map((appointment) => (
+                  {upcomingAppointments.length > 0 ? upcomingAppointments.map((appointment) => (
                     <div key={appointment.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
@@ -142,7 +155,19 @@ const PatientDashboard = () => {
                         </MedicalButton>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No upcoming appointments</h3>
+                      <p className="text-gray-600 mb-4">Schedule your first appointment with a healthcare provider</p>
+                      <MedicalButton 
+                        variant="medical"
+                        onClick={() => window.location.href = '/appointment/booking'}
+                      >
+                        Book Your First Appointment
+                      </MedicalButton>
+                    </div>
+                  )}
                 </div>
               </MedicalCardContent>
             </MedicalCard>
