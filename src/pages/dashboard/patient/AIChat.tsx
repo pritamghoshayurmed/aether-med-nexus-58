@@ -1,316 +1,374 @@
 import { useState } from "react";
-import { 
-  Brain, 
-  Send, 
-  Mic, 
-  Camera, 
-  FileText, 
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Users,
-  Stethoscope
+import {
+  Brain,
+  Send,
+  Mic,
+  MessageCircle,
+  Video,
+  User,
+  Bot,
+  Menu,
+  Upload,
+  Settings,
+  History,
+  X
 } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
 
 const PatientAIChat = () => {
   const [message, setMessage] = useState("");
-  const [symptoms, setSymptoms] = useState("");
+  const [activeTab, setActiveTab] = useState("chat");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isAvatarSpeaking, setIsAvatarSpeaking] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     {
       id: 1,
       type: "ai",
-      content: "Hello! I'm your AI Health Assistant. I can help you identify potential health conditions based on your symptoms and recommend appropriate specialists. How are you feeling today?",
+      content: "Hello! I'm your AI Health Assistant. How can I help you today?",
       timestamp: "10:30 AM"
     }
   ]);
 
-  const quickSymptoms = [
-    "Headache", "Fever", "Cough", "Chest Pain", "Shortness of breath", 
-    "Nausea", "Fatigue", "Dizziness", "Back Pain", "Joint Pain"
-  ];
-
-  const recommendations = [
+  const [avatarMessages, setAvatarMessages] = useState([
     {
-      condition: "Common Cold",
-      probability: 85,
-      severity: "mild",
-      specialist: "General Physician",
-      symptoms: ["Runny nose", "Cough", "Mild fever"],
-      actions: ["Rest", "Stay hydrated", "Monitor symptoms"]
-    },
-    {
-      condition: "Seasonal Allergies", 
-      probability: 60,
-      severity: "mild",
-      specialist: "Allergist",
-      symptoms: ["Sneezing", "Watery eyes", "Congestion"],
-      actions: ["Avoid allergens", "Consider antihistamines"]
+      id: 1,
+      type: "ai",
+      content: "Hi there! I'm Dr. Virtual, your conversational AI health companion. I can speak with you naturally about your health concerns.",
+      timestamp: "10:30 AM"
     }
-  ];
+  ]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = (targetTab = activeTab) => {
     if (!message.trim()) return;
 
     const newMessage = {
-      id: chatMessages.length + 1,
+      id: Date.now(),
       type: "user",
       content: message,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setChatMessages([...chatMessages, newMessage]);
+    if (targetTab === "chat") {
+      setChatMessages([...chatMessages, newMessage]);
+    } else {
+      setAvatarMessages([...avatarMessages, newMessage]);
+    }
+    
     setMessage("");
 
     // Simulate AI response
     setTimeout(() => {
+      const responses = {
+        chat: [
+          "I understand your concern. Let me help you with that.",
+          "That's a great question! Based on what you've told me...",
+          "I'm here to assist you with your health-related queries.",
+          "Let me provide you with some helpful information about that."
+        ],
+        avatar: [
+          "Thank you for sharing that with me. Let's discuss this further.",
+          "I can see why that would be concerning. Here's what I think...",
+          "That's quite interesting. From a medical perspective...",
+          "I appreciate you being so detailed. Let me explain..."
+        ]
+      };
+      
+      const responseArray = responses[targetTab] || responses.chat;
+      const randomResponse = responseArray[Math.floor(Math.random() * responseArray.length)];
+      
       const aiResponse = {
-        id: chatMessages.length + 2,
+        id: Date.now() + 1,
         type: "ai", 
-        content: "Thank you for sharing your symptoms. Based on what you've described, I'm analyzing the information. Let me provide you with some insights and recommendations.",
+        content: randomResponse,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setChatMessages(prev => [...prev, aiResponse]);
+      
+      if (targetTab === "chat") {
+        setChatMessages(prev => [...prev, aiResponse]);
+      } else {
+        setAvatarMessages(prev => [...prev, aiResponse]);
+      }
     }, 1500);
   };
 
-  const handleSymptomAnalysis = () => {
-    if (!symptoms.trim()) return;
+  const handleDocumentUpload = () => {
+    // Simulate document upload
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.doc,.docx,.txt,.jpg,.png';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const newMessage = {
+          id: Date.now(),
+          type: "user",
+          content: `Uploaded document: ${file.name}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setChatMessages(prev => [...prev, newMessage]);
 
-    const analysisMessage = {
-      id: chatMessages.length + 1,
-      type: "analysis",
-      content: `Analyzing symptoms: ${symptoms}`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        // Simulate AI response
+        setTimeout(() => {
+          const aiResponse = {
+            id: Date.now() + 1,
+            type: "ai",
+            content: `I've received your document "${file.name}". Let me analyze it and provide insights.`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setChatMessages(prev => [...prev, aiResponse]);
+        }, 1500);
+      }
     };
+    input.click();
+  };
 
-    setChatMessages([...chatMessages, analysisMessage]);
-    setSymptoms("");
+  const handleMicClick = (targetTab = activeTab) => {
+    if (targetTab === "avatar") {
+      setIsSpeaking(!isSpeaking);
+      setIsAvatarSpeaking(!isAvatarSpeaking);
+
+      // Simulate speaking animation duration
+      setTimeout(() => {
+        setIsSpeaking(false);
+        setIsAvatarSpeaking(false);
+      }, 3000);
+    } else {
+      setIsSpeaking(!isSpeaking);
+      // For regular chat, just toggle mic state
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-background p-4 md:p-6 pb-24">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">
             <span className="gradient-text">AI Health Assistant</span>
           </h1>
-          <p className="text-muted-foreground">Get AI-powered health insights & specialist recommendations</p>
+          <p className="text-muted-foreground">Chat with AI in text or through conversational avatar</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Chat Interface */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Chat Messages */}
-            <MedicalCard variant="glass">
-              <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center">
-                  <Brain className="mr-2 h-5 w-5 text-primary" />
-                  AI Conversation
-                </MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="h-96 overflow-y-auto space-y-4 mb-4 p-2">
-                  {chatMessages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] p-3 rounded-lg ${
-                        msg.type === 'user' 
-                          ? 'bg-primary text-primary-foreground' 
-                          : msg.type === 'analysis'
-                          ? 'bg-orange-500/20 border border-orange-500/30'
-                          : 'bg-muted'
-                      }`}>
-                        <p className="text-sm">{msg.content}</p>
-                        <span className="text-xs opacity-70 mt-1 block">{msg.timestamp}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Message Input */}
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="Type your message or describe symptoms..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="flex-1"
-                  />
-                  <MedicalButton onClick={handleSendMessage} size="icon">
-                    <Send className="h-4 w-4" />
-                  </MedicalButton>
-                  <MedicalButton variant="outline" size="icon">
-                    <Mic className="h-4 w-4" />
-                  </MedicalButton>
-                </div>
-              </MedicalCardContent>
-            </MedicalCard>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              AI Chat
+            </TabsTrigger>
+            <TabsTrigger value="avatar" className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              AI Avatar
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Symptom Analysis */}
-            <MedicalCard variant="glass" className="medical-glow">
-              <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center">
-                  <AlertCircle className="mr-2 h-5 w-5 text-primary" />
-                  Symptom Analysis
-                </MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Describe your symptoms in detail:</label>
-                    <Textarea
-                      placeholder="Example: I have a persistent headache for 2 days, mild fever, and feeling tired..."
-                      value={symptoms}
-                      onChange={(e) => setSymptoms(e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                  
-                  {/* Quick Symptom Tags */}
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Quick symptoms:</label>
-                    <div className="flex flex-wrap gap-2">
-                      {quickSymptoms.map((symptom) => (
-                        <Badge 
-                          key={symptom}
-                          variant="outline" 
-                          className="cursor-pointer hover:bg-primary/10"
-                          onClick={() => setSymptoms(prev => prev ? `${prev}, ${symptom}` : symptom)}
-                        >
-                          {symptom}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <MedicalButton onClick={handleSymptomAnalysis} variant="medical" className="flex-1">
-                      <Brain className="mr-2 h-4 w-4" />
-                      Analyze Symptoms
-                    </MedicalButton>
-                    <MedicalButton variant="outline" size="icon">
-                      <Camera className="h-4 w-4" />
-                    </MedicalButton>
-                    <MedicalButton variant="outline" size="icon">
-                      <FileText className="h-4 w-4" />
-                    </MedicalButton>
-                  </div>
-                </div>
-              </MedicalCardContent>
-            </MedicalCard>
-          </div>
-
-          {/* Recommendations Panel */}
-          <div className="space-y-6">
-            {/* AI Recommendations */}
-            <MedicalCard variant="glass">
-              <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center">
-                  <CheckCircle className="mr-2 h-5 w-5 text-primary" />
-                  AI Recommendations
-                </MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="space-y-4">
-                  {recommendations.map((rec, index) => (
-                    <div key={index} className="p-3 rounded-lg bg-muted/30 border border-border/50">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-sm">{rec.condition}</h4>
-                        <Badge 
-                          variant={rec.severity === "mild" ? "default" : "secondary"}
-                          className="text-xs"
-                        >
-                          {rec.probability}% match
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2 text-xs">
-                        <div>
-                          <span className="font-medium">Severity:</span>
-                          <Badge 
-                            variant="outline" 
-                            className={`ml-1 text-xs ${rec.severity === 'mild' ? 'text-green-600' : 'text-orange-600'}`}
-                          >
-                            {rec.severity}
-                          </Badge>
-                        </div>
-                        
-                        <div>
-                          <span className="font-medium">Specialist:</span>
-                          <span className="text-primary ml-1">{rec.specialist}</span>
-                        </div>
-                        
-                        <div>
-                          <span className="font-medium">Symptoms:</span>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {rec.symptoms.map((symptom, i) => (
-                              <Badge key={i} variant="outline" className="text-xs">
-                                {symptom}
-                              </Badge>
-                            ))}
+          <TabsContent value="chat" className="space-y-0">
+            <MedicalCard variant="glass" className="h-[600px] flex flex-col">
+              <MedicalCardHeader className="flex flex-row items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Menu className="h-4 w-4" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80">
+                      <SheetHeader>
+                        <SheetTitle>Chat Menu</SheetTitle>
+                      </SheetHeader>
+                      <div className="mt-6 space-y-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium flex items-center gap-2">
+                            <History className="h-4 w-4" />
+                            Previous Chats
+                          </h4>
+                          <div className="space-y-1 pl-6">
+                            <div className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
+                              Today's Chat
+                            </div>
+                            <div className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
+                              Yesterday's Chat
+                            </div>
+                            <div className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
+                              Health Consultation - Sep 25
+                            </div>
                           </div>
                         </div>
-                        
-                        <div>
-                          <span className="font-medium">Recommended actions:</span>
-                          <ul className="mt-1 space-y-1">
-                            {rec.actions.map((action, i) => (
-                              <li key={i} className="text-muted-foreground">• {action}</li>
-                            ))}
-                          </ul>
+                        <div className="space-y-2">
+                          <h4 className="font-medium flex items-center gap-2">
+                            <Settings className="h-4 w-4" />
+                            Chat Settings
+                          </h4>
+                          <div className="space-y-1 pl-6">
+                            <div className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
+                              Response Style
+                            </div>
+                            <div className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
+                              Language
+                            </div>
+                            <div className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">
+                              Privacy Settings
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      
-                      <MedicalButton variant="medical" size="sm" className="w-full mt-3">
-                        <Stethoscope className="mr-1 h-3 w-3" />
-                        Find {rec.specialist}
-                      </MedicalButton>
+                    </SheetContent>
+                  </Sheet>
+                  <MedicalCardTitle className="flex items-center">
+                    <Brain className="mr-2 h-5 w-5 text-primary" />
+                    AI Text Chat
+                  </MedicalCardTitle>
+                </div>
+              </MedicalCardHeader>
+              <MedicalCardContent className="flex-1 flex flex-col">
+                {/* Chat Messages */}
+                <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-2">
+                  {chatMessages.map((msg) => (
+                    <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] flex gap-3 ${msg.type === 'user' ? 'flex-row-reverse' : ''}`}>
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                          <AvatarFallback className={`text-xs ${msg.type === 'user' ? 'bg-primary text-white' : 'bg-secondary'}`}>
+                            {msg.type === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={`p-3 rounded-lg ${
+                          msg.type === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        }`}>
+                          <p className="text-sm">{msg.content}</p>
+                          <span className="text-xs opacity-70 mt-1 block">{msg.timestamp}</span>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </MedicalCardContent>
-            </MedicalCard>
 
-            {/* AI Features */}
-            <MedicalCard variant="glass">
-              <MedicalCardHeader>
-                <MedicalCardTitle>AI Features</MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-2 rounded-lg bg-primary/10">
-                    <Brain className="h-4 w-4 text-primary" />
-                    <div className="text-sm">
-                      <div className="font-medium">Smart Diagnosis</div>
-                      <div className="text-xs text-muted-foreground">AI-powered symptom analysis</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3 p-2 rounded-lg bg-primary/10">
-                    <Users className="h-4 w-4 text-primary" />
-                    <div className="text-sm">
-                      <div className="font-medium">Specialist Matching</div>
-                      <div className="text-xs text-muted-foreground">Find the right doctor</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3 p-2 rounded-lg bg-primary/10">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <div className="text-sm">
-                      <div className="font-medium">24/7 Availability</div>
-                      <div className="text-xs text-muted-foreground">Always here to help</div>
-                    </div>
-                  </div>
+                {/* Message Input */}
+                <div className="flex space-x-2 border-t pt-4">
+                  <Input
+                    placeholder="Type your message here..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage('chat')}
+                    className="flex-1"
+                  />
+                  <MedicalButton onClick={handleDocumentUpload} variant="outline" size="icon">
+                    <Upload className="h-4 w-4" />
+                  </MedicalButton>
+                  <MedicalButton
+                    onClick={() => handleMicClick('chat')}
+                    variant={isSpeaking ? "destructive" : "outline"}
+                    size="icon"
+                  >
+                    <Mic className={`h-4 w-4 ${isSpeaking ? 'animate-pulse' : ''}`} />
+                  </MedicalButton>
+                  <MedicalButton onClick={() => handleSendMessage('chat')} size="icon">
+                    <Send className="h-4 w-4" />
+                  </MedicalButton>
                 </div>
               </MedicalCardContent>
             </MedicalCard>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="avatar" className="space-y-0">
+            <MedicalCard variant="glass" className="h-[600px] flex flex-col">
+              <MedicalCardHeader>
+                <MedicalCardTitle className="flex items-center">
+                  <Video className="mr-2 h-5 w-5 text-primary" />
+                  Conversational AI Avatar
+                </MedicalCardTitle>
+              </MedicalCardHeader>
+              <MedicalCardContent className="flex-1 flex flex-col">
+                {/* Avatar Display Area - Full Height */}
+                <div className="flex-1 flex items-center justify-center">
+                  {/* Avatar Video/Animation Area */}
+                  <div className="w-full h-full max-w-md max-h-96 bg-muted/30 rounded-lg flex items-center justify-center border border-border/50 relative overflow-hidden">
+                    <div className="text-center relative z-10">
+                      {/* Avatar Circle with Enhanced Animation */}
+                      <div className={`w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500 ${
+                        isAvatarSpeaking
+                          ? 'bg-gradient-to-r from-red-500/40 to-orange-500/40 scale-125 shadow-2xl shadow-red-500/30'
+                          : 'bg-gradient-to-r from-primary/30 to-blue-500/30 scale-100'
+                      }`}>
+                        <User className={`h-16 w-16 transition-all duration-500 ${
+                          isAvatarSpeaking
+                            ? 'text-red-400 animate-bounce'
+                            : 'text-primary'
+                        }`} />
+                      </div>
+
+                      {/* Status Text */}
+                      <div className="space-y-2">
+                        <p className={`text-lg font-medium transition-colors duration-300 ${
+                          isAvatarSpeaking ? 'text-red-400' : 'text-muted-foreground'
+                        }`}>
+                          {isAvatarSpeaking ? 'AI Avatar is speaking...' : 'AI Avatar is listening'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {isAvatarSpeaking ? 'Responding to your voice' : 'Ready for natural conversation'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Animated Background Effects */}
+                    {isAvatarSpeaking && (
+                      <>
+                        <div className="absolute inset-0 rounded-lg border-4 border-red-500/20 animate-ping"></div>
+                        <div className="absolute inset-4 rounded-lg border-2 border-orange-500/30 animate-pulse"></div>
+                        <div className="absolute inset-8 rounded-lg border border-yellow-500/20 animate-ping" style={{animationDelay: '0.5s'}}></div>
+                      </>
+                    )}
+
+                    {/* Subtle Background Pattern */}
+                    <div className="absolute inset-0 opacity-5">
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 via-transparent to-secondary/20"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Avatar Controls - Enhanced Mic Button */}
+                <div className="flex justify-center border-t pt-6 pb-4">
+                  <MedicalButton
+                    onClick={() => handleMicClick('avatar')}
+                    variant={isSpeaking ? "destructive" : "medical"}
+                    size="lg"
+                    className={`h-20 w-20 rounded-full transition-all duration-500 relative overflow-hidden ${
+                      isSpeaking
+                        ? 'animate-pulse scale-110 shadow-2xl shadow-red-500/50 ring-4 ring-red-500/30'
+                        : 'scale-100 shadow-lg'
+                    }`}
+                  >
+                    {/* Mic Icon with Animation */}
+                    <Mic className={`h-8 w-8 transition-all duration-300 relative z-10 ${
+                      isSpeaking
+                        ? 'text-white animate-bounce'
+                        : 'text-white'
+                    }`} />
+
+                    {/* Ripple Effect */}
+                    {isSpeaking && (
+                      <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
+                    )}
+
+                    {/* Background Glow */}
+                    <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
+                      isSpeaking
+                        ? 'bg-gradient-to-r from-red-500 to-orange-500 opacity-90'
+                        : 'bg-gradient-to-r from-primary to-blue-500 opacity-80'
+                    }`}></div>
+                  </MedicalButton>
+                </div>
+              </MedicalCardContent>
+            </MedicalCard>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <BottomNavigation userRole="patient" />
