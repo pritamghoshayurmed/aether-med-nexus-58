@@ -144,20 +144,20 @@ const Prescriptions = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-background p-4 md:p-6 pb-24">
+    <div className="min-h-screen bg-gradient-background p-3 sm:p-4 md:p-6 pb-20 sm:pb-24">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
             <span className="gradient-text">My Prescriptions</span>
           </h1>
-          <p className="text-muted-foreground">Manage your medications and prescriptions</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage your medications and prescriptions</p>
         </div>
 
         <Tabs defaultValue="prescriptions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="prescriptions">All Prescriptions</TabsTrigger>
-            <TabsTrigger value="active">Active Medications</TabsTrigger>
-            <TabsTrigger value="pharmacy">Find Pharmacy</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsTrigger value="prescriptions" className="text-xs sm:text-sm">All Prescriptions</TabsTrigger>
+            <TabsTrigger value="active" className="text-xs sm:text-sm">Active Medications</TabsTrigger>
+            <TabsTrigger value="pharmacy" className="text-xs sm:text-sm">Find Pharmacy</TabsTrigger>
           </TabsList>
 
           <TabsContent value="prescriptions" className="space-y-6">
@@ -192,18 +192,18 @@ const Prescriptions = () => {
             <div className="space-y-4">
               {prescriptions.map((prescription) => (
                 <MedicalCard key={prescription.id} variant="glass">
-                  <MedicalCardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
+                  <MedicalCardHeader className="pb-3 sm:pb-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
                           <Pill className="h-5 w-5 text-primary" />
                         </div>
-                        <div className="flex-1">
-                          <MedicalCardTitle className="text-lg mb-2">
-                            {prescription.medication}
+                        <div className="flex-1 min-w-0">
+                          <MedicalCardTitle className="text-base sm:text-lg mb-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="truncate">{prescription.medication}</span>
                             <Badge 
                               variant={getStatusColor(prescription.status)} 
-                              className="ml-2"
+                              className="self-start text-xs"
                             >
                               {getStatusText(prescription.status)}
                             </Badge>
@@ -211,7 +211,7 @@ const Prescriptions = () => {
                           <p className="text-sm text-muted-foreground mb-2">
                             For: {prescription.condition}
                           </p>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
                             <div>
                               <span className="text-muted-foreground">Dosage:</span>
                               <p className="font-medium">{prescription.dosage}</p>
@@ -233,14 +233,14 @@ const Prescriptions = () => {
                       </div>
                     </div>
                   </MedicalCardHeader>
-                  <MedicalCardContent>
-                    <div className="bg-muted/30 rounded-lg p-3 mb-4">
+                  <MedicalCardContent className="pt-0">
+                    <div className="bg-muted/30 rounded-lg p-3 mb-3 sm:mb-4">
                       <p className="text-sm">
                         <span className="font-medium">Instructions:</span> {prescription.instructions}
                       </p>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center space-x-1">
                           <User className="h-4 w-4" />
                           <span>{prescription.doctor}</span>
@@ -250,17 +250,17 @@ const Prescriptions = () => {
                           <span>Prescribed: {new Date(prescription.prescribedDate).toLocaleDateString()}</span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <MedicalButton variant="outline" size="sm">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
+                        <MedicalButton variant="outline" size="sm" className="w-full sm:w-auto">
                           <Eye className="mr-1 h-4 w-4" />
                           View
                         </MedicalButton>
-                        <MedicalButton variant="outline" size="sm">
+                        <MedicalButton variant="outline" size="sm" className="w-full sm:w-auto">
                           <Download className="mr-1 h-4 w-4" />
                           Download
                         </MedicalButton>
                         {prescription.status === "active" && prescription.refillsRemaining > 0 && (
-                          <MedicalButton variant="medical" size="sm">
+                          <MedicalButton variant="medical" size="sm" className="w-full sm:w-auto">
                             <RefreshCw className="mr-1 h-4 w-4" />
                             Refill
                           </MedicalButton>
@@ -337,7 +337,7 @@ const Prescriptions = () => {
 
           <TabsContent value="pharmacy" className="space-y-6">
             {/* Pharmacy Search */}
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <div className="relative flex-1">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -345,7 +345,7 @@ const Prescriptions = () => {
                   className="pl-10"
                 />
               </div>
-              <MedicalButton variant="medical">
+              <MedicalButton variant="medical" className="w-full sm:w-auto">
                 <Search className="mr-2 h-4 w-4" />
                 Find Nearby
               </MedicalButton>
