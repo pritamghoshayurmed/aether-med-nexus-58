@@ -193,8 +193,8 @@ const AppointmentManagement = () => {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">My Appointments</h1>
-                <p className="text-sm text-gray-600">Manage your healthcare appointments</p>
+                <h1 className="text-2xl font-bold text-white">My Appointments</h1>
+                <p className="text-sm text-white">Manage your healthcare appointments</p>
               </div>
             </div>
             <Button onClick={handleBookNewAppointment}>
@@ -206,7 +206,7 @@ const AppointmentManagement = () => {
           {/* Search and Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white h-5 w-5" />
               <Input
                 placeholder="Search appointments..."
                 value={searchQuery}
@@ -254,16 +254,16 @@ const AppointmentManagement = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900 mb-1">
+                          <h3 className="text-lg font-bold text-white mb-1">
                             {appointment.doctor.name}
                           </h3>
                           <p className="text-primary font-medium mb-2">
                             {appointment.doctor.specialty}
                           </p>
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-white mb-2">
                             {appointment.doctor.hospital}
                           </p>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-sm text-white">
                             <span>ID: {appointment.id}</span>
                             <Badge className={getStatusColor(appointment.status)}>
                               {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
@@ -275,19 +275,19 @@ const AppointmentManagement = () => {
                       {/* Appointment Details */}
                       <div className="lg:w-64 space-y-3">
                         <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-4 w-4 text-gray-500" />
+                          <Calendar className="h-4 w-4 text-white" />
                           <span>{formatDate(appointment.date)}</span>
                         </div>
                         
                         <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-gray-500" />
+                          <Clock className="h-4 w-4 text-white" />
                           <span>{appointment.time}</span>
                         </div>
                         
                         <div className="flex items-center gap-2 text-sm">
-                          {appointment.type === "Video Call" && <Video className="h-4 w-4 text-gray-500" />}
-                          {appointment.type === "Phone Call" && <Phone className="h-4 w-4 text-gray-500" />}
-                          {appointment.type === "In-Person" && <Building className="h-4 w-4 text-gray-500" />}
+                          {appointment.type === "Video Call" && <Video className="h-4 w-4 text-white" />}
+                          {appointment.type === "Phone Call" && <Phone className="h-4 w-4 text-white" />}
+                          {appointment.type === "In-Person" && <Building className="h-4 w-4 text-white" />}
                           <span>{appointment.type}</span>
                         </div>
 
@@ -364,7 +364,7 @@ const AppointmentManagement = () => {
                     {/* Patient Notes */}
                     {appointment.patientNotes && (
                       <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-white">
                           <span className="font-medium">Notes: </span>
                           {appointment.patientNotes}
                         </p>
@@ -375,11 +375,11 @@ const AppointmentManagement = () => {
               ))
             ) : (
               <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <Calendar className="h-16 w-16 text-white mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">
                   No {activeTab} appointments
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-white mb-6">
                   {activeTab === "upcoming" 
                     ? "You don't have any upcoming appointments scheduled."
                     : activeTab === "past"
