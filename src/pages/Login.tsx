@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Heart, Mail, Lock, User, Stethoscope, Building2, Shield } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -13,9 +14,11 @@ const Login = () => {
   const [selectedRole, setSelectedRole] = useState<string>("patient");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, user, checkRememberedSession } = useAuth();
 
   const roles = [
     { id: "patient", label: "Patient", icon: User, color: "text-primary" },
@@ -24,34 +27,76 @@ const Login = () => {
     { id: "admin", label: "Admin", icon: Shield, color: "text-destructive" },
   ];
 
+  // Check for remembered session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      if (user) {
+        // User already logged in, redirect to appropriate dashboard
+        const role = localStorage.getItem('userRole') || 'patient';
+        redirectToDashboard(role);
+        return;
+      }
+
+      const hasValidSession = await checkRememberedSession();
+      if (hasValidSession) {
+        // Auto-login with remembered session
+        const role = localStorage.getItem('userRole') || 'patient';
+        // Wait a bit for auth state to update
+        setTimeout(() => {
+          redirectToDashboard(role);
+        }, 1000);
+      }
+      setCheckingSession(false);
+    };
+
+    checkSession();
+  }, [user, checkRememberedSession]);
+
+  const redirectToDashboard = (role: string) => {
+    switch (role) {
+      case 'patient':
+        navigate('/dashboard/patient');
+        break;
+      case 'doctor':
+        navigate('/dashboard/doctor');
+        break;
+      case 'hospital':
+        navigate('/dashboard/hospital');
+        break;
+      case 'admin':
+        navigate('/dashboard/super-admin');
+        break;
+      default:
+        navigate('/');
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(email, password, selectedRole);
+    const { error } = await signIn(email, password, selectedRole, rememberMe);
 
     if (!error) {
-      // Navigate based on role
-      switch (selectedRole) {
-        case 'patient':
-          navigate('/dashboard/patient');
-          break;
-        case 'doctor':
-          navigate('/dashboard/doctor');
-          break;
-        case 'hospital':
-          navigate('/dashboard/hospital');
-          break;
-        case 'admin':
-          navigate('/dashboard/super-admin');
-          break;
-        default:
-          navigate('/');
-      }
+      redirectToDashboard(selectedRole);
     }
 
     setLoading(false);
   };
+
+  // Show loading while checking session
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-background">
+        <div className="text-center">
+          <div className="medical-glow p-3 rounded-xl inline-block mb-4">
+            <img src="/logo.png" alt="Kabiraj AI" className="h-20 w-20 object-contain animate-pulse" />
+          </div>
+          <p className="text-muted-foreground">Checking session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-background">
@@ -149,8 +194,12 @@ const Login = () => {
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" className="rounded border-border" />
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <Checkbox 
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  />
                   <span className="text-muted-foreground">Remember me</span>
                 </label>
                 <Link to="/forgot-password" className="text-primary hover:text-primary-glow">

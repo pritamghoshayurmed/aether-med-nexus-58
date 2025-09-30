@@ -16,82 +16,21 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
+import { useAppointments } from "@/hooks/useDatabase";
 
 const PatientAppointments = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const { appointments, loading } = useAppointments();
 
-  const doctors = [
-    {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      specialty: "Cardiologist",
-      rating: 4.9,
-      reviews: 234,
-      experience: "15+ years",
-      fee: "₹800",
-      avatar: "SJ",
-      nextSlot: "Today 2:30 PM",
-      hospital: "Apollo Hospital",
-      distance: "2.1 km"
-    },
-    {
-      id: 2,
-      name: "Dr. Michael Chen",
-      specialty: "General Medicine", 
-      rating: 4.8,
-      reviews: 189,
-      experience: "12+ years",
-      fee: "₹600",
-      avatar: "MC",
-      nextSlot: "Tomorrow 10:00 AM",
-      hospital: "Max Healthcare",
-      distance: "1.8 km"
-    },
-    {
-      id: 3,
-      name: "Dr. Priya Sharma",
-      specialty: "Dermatologist",
-      rating: 4.7,
-      reviews: 156,
-      experience: "10+ years", 
-      fee: "₹750",
-      avatar: "PS",
-      nextSlot: "Today 4:00 PM",
-      hospital: "Fortis Hospital",
-      distance: "3.2 km"
-    }
-  ];
-
-  const upcomingAppointments = [
-    {
-      id: 1,
-      doctor: "Dr. Sarah Johnson",
-      specialty: "Cardiologist", 
-      date: "Today, 2:30 PM",
-      type: "Video Call",
-      status: "confirmed",
-      rating: null
-    },
-    {
-      id: 2,
-      doctor: "Dr. Michael Chen",
-      specialty: "General Medicine",
-      date: "Tomorrow, 10:00 AM", 
-      type: "In-Person",
-      status: "confirmed",
-      rating: null
-    },
-    {
-      id: 3,
-      doctor: "Dr. Priya Sharma",
-      specialty: "Dermatologist",
-      date: "Dec 12, 3:00 PM",
-      type: "Video Call", 
-      status: "completed",
-      rating: 4.5
-    }
-  ];
+  // Separate past and upcoming appointments
+  const now = new Date();
+  const upcomingAppointments = appointments.filter(apt => 
+    new Date(apt.appointment_date) >= new Date(now.toDateString())
+  );
+  const pastAppointments = appointments.filter(apt => 
+    new Date(apt.appointment_date) < new Date(now.toDateString())
+  );
 
   return (
     <div className="min-h-screen bg-gradient-background p-4 md:p-6 pb-24">
@@ -131,129 +70,130 @@ const PatientAppointments = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Doctor Search Results */}
+          {/* Appointments List */}
           <div className="lg:col-span-2">
             <MedicalCard variant="glass">
               <MedicalCardHeader>
-                <MedicalCardTitle>Available Doctors</MedicalCardTitle>
+                <MedicalCardTitle>Your Appointments</MedicalCardTitle>
               </MedicalCardHeader>
               <MedicalCardContent>
-                <div className="space-y-4">
-                  {doctors.map((doctor) => (
-                    <div key={doctor.id} className="p-4 rounded-lg bg-muted/30 border border-border/50">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                            <span className="text-primary font-bold text-lg">{doctor.avatar}</span>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-bold text-lg">{doctor.name}</h3>
-                            <p className="text-primary font-medium">{doctor.specialty}</p>
-                            <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
-                              <div className="flex items-center space-x-1">
-                                <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                                <span>{doctor.rating}</span>
-                                <span>({doctor.reviews})</span>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading appointments...</p>
+                  </div>
+                ) : appointments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No appointments yet</h3>
+                    <p className="text-gray-600 mb-4">Book your first appointment with a healthcare provider</p>
+                    <MedicalButton 
+                      variant="medical"
+                      onClick={() => window.location.href = '/appointment/booking'}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Book Appointment
+                    </MedicalButton>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {appointments.map((appointment: any) => (
+                      <div key={appointment.id} className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-start space-x-4">
+                            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                              <span className="text-primary font-bold text-lg">
+                                {appointment.doctors?.profiles?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'DR'}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-bold text-lg">{appointment.doctors?.profiles?.full_name || 'Doctor'}</h3>
+                              <p className="text-primary font-medium">{appointment.doctors?.specialty || 'Specialist'}</p>
+                              <div className="flex items-center space-x-2 mt-2">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">
+                                  {new Date(appointment.appointment_date).toLocaleDateString()} at {appointment.appointment_time}
+                                </span>
                               </div>
-                              <span>{doctor.experience}</span>
-                            </div>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">{doctor.hospital} • {doctor.distance}</span>
+                              {appointment.reason && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Reason: {appointment.reason}
+                                </p>
+                              )}
                             </div>
                           </div>
+                          <Badge 
+                            variant={
+                              appointment.status === 'scheduled' ? 'default' : 
+                              appointment.status === 'completed' ? 'secondary' : 
+                              appointment.status === 'cancelled' ? 'destructive' : 'outline'
+                            }
+                            className="text-xs capitalize"
+                          >
+                            {appointment.status}
+                          </Badge>
                         </div>
-                        <div className="text-right">
-                          <div className="text-xl font-bold text-primary">{doctor.fee}</div>
-                          <div className="text-sm text-muted-foreground">Consultation</div>
+                        
+                        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {appointment.appointment_type}
+                          </Badge>
+                          <div className="flex items-center space-x-2">
+                            {appointment.appointment_type === 'video' && appointment.status === 'scheduled' && (
+                              <MedicalButton variant="medical" size="sm">
+                                <Video className="mr-1 h-4 w-4" />
+                                Join Call
+                              </MedicalButton>
+                            )}
+                            {appointment.status === 'scheduled' && (
+                              <MedicalButton variant="outline" size="sm">
+                                <MessageSquare className="h-4 w-4" />
+                              </MedicalButton>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                        <div className="flex items-center space-x-2">
-                          <Clock className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">Next: {doctor.nextSlot}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <MedicalButton variant="outline" size="sm">
-                            <Phone className="mr-1 h-4 w-4" />
-                            Call
-                          </MedicalButton>
-                          <MedicalButton variant="medical" size="sm">
-                            <Video className="mr-1 h-4 w-4" />
-                            Book Slot
-                          </MedicalButton>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </MedicalCardContent>
             </MedicalCard>
           </div>
 
-          {/* Upcoming Appointments */}
+          {/* Summary Sidebar */}
           <div>
             <MedicalCard variant="glass">
               <MedicalCardHeader>
                 <MedicalCardTitle className="flex items-center">
                   <Calendar className="mr-2 h-5 w-5 text-primary" />
-                  My Appointments
+                  Quick Actions
                 </MedicalCardTitle>
               </MedicalCardHeader>
               <MedicalCardContent>
                 <div className="space-y-3">
-                  {upcomingAppointments.map((appointment) => (
-                    <div key={appointment.id} className="p-3 rounded-lg bg-muted/30">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-sm">{appointment.doctor}</h4>
-                        <Badge 
-                          variant={appointment.status === "confirmed" ? "default" : appointment.status === "completed" ? "secondary" : "outline"}
-                          className="text-xs"
-                        >
-                          {appointment.status}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2">{appointment.specialty}</p>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-primary">{appointment.date}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {appointment.type}
-                        </Badge>
-                      </div>
-                      
-                      {appointment.status === "completed" ? (
-                        <div className="mt-3 pt-2 border-t border-border/30">
-                          {appointment.rating ? (
-                            <div className="flex items-center space-x-1">
-                              <span className="text-xs">Rated:</span>
-                              {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i} 
-                                  className={`h-3 w-3 ${i < appointment.rating! ? 'text-yellow-500 fill-current' : 'text-muted-foreground'}`} 
-                                />
-                              ))}
-                            </div>
-                          ) : (
-                            <MedicalButton variant="outline" size="sm" className="w-full">
-                              Rate Doctor
-                            </MedicalButton>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="mt-3 pt-2 border-t border-border/30 flex space-x-2">
-                          <MedicalButton variant="outline" size="sm" className="flex-1">
-                            <MessageSquare className="h-3 w-3 mr-1" />
-                            Chat
-                          </MedicalButton>
-                          <MedicalButton variant="medical" size="sm" className="flex-1">
-                            <Video className="h-3 w-3 mr-1" />
-                            Join
-                          </MedicalButton>
-                        </div>
-                      )}
+                  <MedicalButton 
+                    variant="medical" 
+                    className="w-full"
+                    onClick={() => window.location.href = '/appointment/booking'}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Book New Appointment
+                  </MedicalButton>
+                  
+                  <div className="p-4 rounded-lg bg-muted/30 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Total Appointments</span>
+                      <span className="font-semibold">{appointments.length}</span>
                     </div>
-                  ))}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Upcoming</span>
+                      <span className="font-semibold text-primary">{upcomingAppointments.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Completed</span>
+                      <span className="font-semibold text-success">{pastAppointments.filter((a: any) => a.status === 'completed').length}</span>
+                    </div>
+                  </div>
                 </div>
               </MedicalCardContent>
             </MedicalCard>

@@ -5,6 +5,7 @@ import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -23,15 +24,17 @@ const Signup = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  // Role specific
-  const [doctorRegNo, setDoctorRegNo] = useState("");
+  // Role specific fields
+  const [doctorLicenseNo, setDoctorLicenseNo] = useState("");
+  const [doctorSpecialty, setDoctorSpecialty] = useState("");
+  const [hospitalName, setHospitalName] = useState("");
   const [hospitalRegNo, setHospitalRegNo] = useState("");
-  const [clinicLicenseNo, setClinicLicenseNo] = useState("");
+  const [hospitalType, setHospitalType] = useState("hospital");
 
   const roles = [
     { id: "patient", label: "Patient", icon: User, color: "text-primary" },
     { id: "doctor", label: "Doctor", icon: Stethoscope, color: "text-success" },
-    { id: "hospital", label: "Hospital", icon: Building2, color: "text-warning" },
+    { id: "hospital", label: "Hospital/Clinic", icon: Building2, color: "text-warning" },
     { id: "admin", label: "Admin", icon: Shield, color: "text-destructive" },
   ];
 
@@ -55,11 +58,17 @@ const Signup = () => {
     }
 
     // Role specific validation
-    if (selectedRole === "doctor" && !doctorRegNo.trim()) {
-      newErrors.doctorRegNo = "Registration number is required for doctors";
+    if (selectedRole === "doctor" && !doctorLicenseNo.trim()) {
+      newErrors.doctorLicenseNo = "License number is required for doctors";
+    }
+    if (selectedRole === "doctor" && !doctorSpecialty.trim()) {
+      newErrors.doctorSpecialty = "Specialty is required for doctors";
+    }
+    if (selectedRole === "hospital" && !hospitalName.trim()) {
+      newErrors.hospitalName = "Hospital/Clinic name is required";
     }
     if (selectedRole === "hospital" && !hospitalRegNo.trim()) {
-      newErrors.hospitalRegNo = "Registration number is required for hospitals";
+      newErrors.hospitalRegNo = "Registration number is required for hospitals/clinics";
     }
 
     if (!acceptedTerms) {
@@ -70,7 +79,19 @@ const Signup = () => {
     if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
-    const { error } = await signUp(email.trim(), password, name.trim(), selectedRole);
+    const { error } = await signUp({
+      email: email.trim(),
+      password,
+      fullName: name.trim(),
+      role: selectedRole,
+      // Doctor specific
+      licenseNumber: selectedRole === "doctor" ? doctorLicenseNo.trim() : undefined,
+      specialty: selectedRole === "doctor" ? doctorSpecialty.trim() : undefined,
+      // Hospital specific
+      hospitalName: selectedRole === "hospital" ? hospitalName.trim() : undefined,
+      registrationNumber: selectedRole === "hospital" ? hospitalRegNo.trim() : undefined,
+      hospitalType: selectedRole === "hospital" ? hospitalType : undefined,
+    });
     
     if (!error) {
       navigate('/login');
@@ -205,72 +226,92 @@ const Signup = () => {
 
               {/* Role specific fields */}
               {selectedRole === "doctor" && (
-                <div>
-                  <Label htmlFor="doctorRegNo">Medical Council Registration No.</Label>
-                  <div className="relative">
-                    <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="doctorRegNo"
-                      type="text"
-                      value={doctorRegNo}
-                      onChange={(e) => setDoctorRegNo(e.target.value)}
-                      className="pl-10"
-                      placeholder="Enter national medical council registration number"
-                      // will be validated on submit
-                    />
+                <>
+                  <div>
+                    <Label htmlFor="doctorSpecialty">Medical Specialty</Label>
+                    <div className="relative">
+                      <Stethoscope className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="doctorSpecialty"
+                        type="text"
+                        value={doctorSpecialty}
+                        onChange={(e) => setDoctorSpecialty(e.target.value)}
+                        className="pl-10"
+                        placeholder="e.g., Cardiology, General Practitioner"
+                        required
+                      />
+                    </div>
+                    {errors.doctorSpecialty && <p className="text-xs text-destructive mt-1">{errors.doctorSpecialty}</p>}
                   </div>
-                  {errors.doctorRegNo && <p className="text-xs text-destructive mt-1">{errors.doctorRegNo}</p>}
-                </div>
+                  <div>
+                    <Label htmlFor="doctorLicenseNo">Medical Council Registration No.</Label>
+                    <div className="relative">
+                      <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="doctorLicenseNo"
+                        type="text"
+                        value={doctorLicenseNo}
+                        onChange={(e) => setDoctorLicenseNo(e.target.value)}
+                        className="pl-10"
+                        placeholder="Enter medical council registration number"
+                        required
+                      />
+                    </div>
+                    {errors.doctorLicenseNo && <p className="text-xs text-destructive mt-1">{errors.doctorLicenseNo}</p>}
+                  </div>
+                </>
               )}
 
               {selectedRole === "hospital" && (
-                <div>
-                  <Label htmlFor="hospitalRegNo">Hospital / Clinic Registration No.</Label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="hospitalRegNo"
-                      type="text"
-                      value={hospitalRegNo}
-                      onChange={(e) => setHospitalRegNo(e.target.value)}
-                      className="pl-10"
-                      placeholder="Enter registration or license number"
-                      // will be validated on submit
-                    />
+                <>
+                  <div>
+                    <Label htmlFor="hospitalName">Hospital/Clinic Name</Label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="hospitalName"
+                        type="text"
+                        value={hospitalName}
+                        onChange={(e) => setHospitalName(e.target.value)}
+                        className="pl-10"
+                        placeholder="Enter hospital or clinic name"
+                        required
+                      />
+                    </div>
+                    {errors.hospitalName && <p className="text-xs text-destructive mt-1">{errors.hospitalName}</p>}
                   </div>
-                  {errors.hospitalRegNo && <p className="text-xs text-destructive mt-1">{errors.hospitalRegNo}</p>}
-                </div>
-              )}
-
-              {/* Example for clinics if treated separately */}
-              {selectedRole === "clinic" && (
-                <div>
-                  <Label htmlFor="clinicLicenseNo">Clinic License No.</Label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="clinicLicenseNo"
-                      type="text"
-                      value={clinicLicenseNo}
-                      onChange={(e) => setClinicLicenseNo(e.target.value)}
-                      className="pl-10"
-                      placeholder="Enter clinic license number"
-                      required
-                    />
+                  <div>
+                    <Label htmlFor="hospitalRegNo">Registration Number</Label>
+                    <div className="relative">
+                      <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="hospitalRegNo"
+                        type="text"
+                        value={hospitalRegNo}
+                        onChange={(e) => setHospitalRegNo(e.target.value)}
+                        className="pl-10"
+                        placeholder="Enter registration or license number"
+                        required
+                      />
+                    </div>
+                    {errors.hospitalRegNo && <p className="text-xs text-destructive mt-1">{errors.hospitalRegNo}</p>}
                   </div>
-                </div>
+                </>
               )}
 
               <div className="flex items-start space-x-3">
-                <input
+                <Checkbox
                   id="terms"
-                  type="checkbox"
                   checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                  className="mt-1"
                 />
-                <label htmlFor="terms" className="text-sm text-muted-foreground">
-                  By creating your account you are accepting the terms and conditions of our services
+                <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer">
+                  By creating your account you are accepting the{" "}
+                  <Link to="/terms-and-conditions" className="text-primary hover:text-primary-glow">
+                    terms and conditions
+                  </Link>{" "}
+                  of our services
                 </label>
               </div>
               {errors.terms && <p className="text-xs text-destructive mt-1">{errors.terms}</p>}
