@@ -1,20 +1,23 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, Stethoscope, Building2, Shield, FileText } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("patient");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   // Common fields
   const [name, setName] = useState("");
-  // single field that accepts either email or mobile number (user requested)
-  const [contact, setContact] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -32,32 +35,26 @@ const Signup = () => {
     { id: "admin", label: "Admin", icon: Shield, color: "text-destructive" },
   ];
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
-    // Require name
+    // Validation
     if (!name.trim()) newErrors.name = "Full name is required";
-
-    // Require either email or mobile in the single contact field
-    if (!contact.trim()) {
-      newErrors.contact = "Either email or mobile number is required";
-    } else {
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.trim());
-      const isPhone = /^\d{7,15}$/.test(contact.trim());
-      if (!isEmail && !isPhone) {
-        newErrors.contact = "Enter a valid email or mobile number (digits only for mobile)";
-      }
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      newErrors.email = "Enter a valid email";
     }
 
-    // Password checks
     if (!password) newErrors.password = "Password is required";
+    if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
     if (!confirmPassword) newErrors.confirmPassword = "Confirm your password";
     if (password && confirmPassword && password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    // Role specific
+    // Role specific validation
     if (selectedRole === "doctor" && !doctorRegNo.trim()) {
       newErrors.doctorRegNo = "Registration number is required for doctors";
     }
@@ -65,33 +62,21 @@ const Signup = () => {
       newErrors.hospitalRegNo = "Registration number is required for hospitals";
     }
 
+    if (!acceptedTerms) {
+      newErrors.terms = "You must accept the terms and conditions to continue";
+    }
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // terms acceptance check
-    if (!acceptedTerms) {
-      setErrors({ ...newErrors, terms: "You must accept the terms and conditions to continue" });
-      return;
+    setLoading(true);
+    const { error } = await signUp(email.trim(), password, name.trim(), selectedRole);
+    
+    if (!error) {
+      navigate('/login');
     }
-
-    // build payload: decide whether contact is email or phone
-    const isEmailContact = contact && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.trim());
-    const isPhoneContact = contact && /^\d{7,15}$/.test(contact.trim());
-
-    const payload: Record<string, any> = {
-      role: selectedRole,
-      name,
-      email: isEmailContact ? contact.trim() : null,
-      mobile: isPhoneContact ? contact.trim() : null,
-      password,
-    };
-
-    if (selectedRole === "doctor") payload.doctorRegNo = doctorRegNo;
-    if (selectedRole === "hospital") payload.hospitalRegNo = hospitalRegNo;
-    if (selectedRole === "clinic") payload.clinicLicenseNo = clinicLicenseNo; // in case clinic is separate
-
-    // TODO: integrate with backend (Supabase/Auth) - for now just log
-    console.log("Signup payload:", payload);
+    
+    setLoading(false);
   };
 
   return (
@@ -161,19 +146,20 @@ const Signup = () => {
               </div>
 
               <div>
-                <Label htmlFor="contact">Email or Mobile</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="contact"
-                    type="text"
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
-                    placeholder="Enter email or mobile number"
+                    placeholder="Enter your email address"
+                    required
                   />
                 </div>
-                {errors.contact && <p className="text-xs text-destructive mt-1">{errors.contact}</p>}
+                {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
               </div>
 
               <div>
@@ -289,8 +275,13 @@ const Signup = () => {
               </div>
               {errors.terms && <p className="text-xs text-destructive mt-1">{errors.terms}</p>}
 
-              <MedicalButton type="submit" variant="medical" className="w-full">
-                Create account as {roles.find(r => r.id === selectedRole)?.label}
+              <MedicalButton 
+                type="submit" 
+                variant="medical" 
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? 'Creating account...' : `Create account as ${roles.find(r => r.id === selectedRole)?.label}`}
               </MedicalButton>
             </form>
 

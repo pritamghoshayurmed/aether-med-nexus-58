@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Heart, Mail, Lock, User, Stethoscope, Building2, Shield } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("patient");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const roles = [
     { id: "patient", label: "Patient", icon: User, color: "text-primary" },
@@ -20,10 +24,33 @@ const Login = () => {
     { id: "admin", label: "Admin", icon: Shield, color: "text-destructive" },
   ];
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would integrate with Supabase authentication
-    console.log("Login attempt:", { email, password, role: selectedRole });
+    setLoading(true);
+
+    const { error } = await signIn(email, password, selectedRole);
+
+    if (!error) {
+      // Navigate based on role
+      switch (selectedRole) {
+        case 'patient':
+          navigate('/dashboard/patient');
+          break;
+        case 'doctor':
+          navigate('/dashboard/doctor');
+          break;
+        case 'hospital':
+          navigate('/dashboard/hospital');
+          break;
+        case 'admin':
+          navigate('/dashboard/super-admin');
+          break;
+        default:
+          navigate('/');
+      }
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -131,8 +158,13 @@ const Login = () => {
                 </Link>
               </div>
 
-              <MedicalButton type="submit" variant="medical" className="w-full">
-                Sign In as {roles.find(r => r.id === selectedRole)?.label}
+              <MedicalButton 
+                type="submit" 
+                variant="medical" 
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? 'Signing in...' : `Sign In as ${roles.find(r => r.id === selectedRole)?.label}`}
               </MedicalButton>
             </form>
 
