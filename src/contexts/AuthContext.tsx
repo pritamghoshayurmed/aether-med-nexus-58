@@ -23,7 +23,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string, role: string, rememberMe?: boolean) => Promise<{ error: AuthError | null }>;
-  signUp: (data: SignUpData) => Promise<{ error: AuthError | null }>;
+  signUp: (data: SignUpData) => Promise<{ error: AuthError | null; role?: string }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   checkRememberedSession: () => Promise<boolean>;
@@ -41,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id || 'No session');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -53,7 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id || 'No session');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -69,18 +71,103 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+      if (error) {
+        console.error('Error fetching profile:', error);
+        
+        // If profile doesn't exist (PGRST116), try to create it
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, attempting to create from auth user...');
+          await createProfileFromAuthUser(userId);
+          return;
+        }
+        
+        throw error;
+      }
+      
+      if (data) {
+        setProfile(data);
+        console.log('Profile loaded successfully:', data);
+      } else {
+        console.warn('No profile data found for user:', userId);
+      }
+    } catch (error: any) {
+      console.error('Error fetching profile:', error.message);
+      setProfile(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createProfileFromAuthUser = async (userId: string) => {
+    try {
+      console.log('Creating profile for user:', userId);
+      
+      // Get user data from auth
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !authUser) {
+        console.error('Cannot get auth user:', authError);
+        return;
+      }
+
+      // Create profile with basic info
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          email: authUser.email || '',
+          full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+          role: authUser.user_metadata?.role || 'patient',
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating profile:', error);
+        throw error;
+      }
+
+      if (data) {
+        setProfile(data);
+        console.log('Profile created successfully:', data);
+        
+        // Also create patient record if role is patient
+        if (data.role === 'patient') {
+          await createInitialPatientRecord(userId);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error creating profile from auth user:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createInitialPatientRecord = async (userId: string) => {
+    try {
+      console.log('Creating initial patient record for user:', userId);
+      
+      const { data, error } = await supabase
+        .from('patients')
+        .insert({ user_id: userId })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating initial patient record:', error);
+      } else {
+        console.log('Initial patient record created:', data);
+      }
+    } catch (error: any) {
+      console.error('Error in createInitialPatientRecord:', error.message);
     }
   };
 
@@ -244,14 +331,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (adminError) throw adminError;
         }
+
+        // Fetch the profile to update context state
+        await fetchProfile(authData.user.id);
+        
+        // Store role for redirect
+        localStorage.setItem('userRole', role);
       }
 
       toast({
         title: 'Success',
-        description: 'Account created successfully. Please check your email for verification.',
+        description: 'Account created successfully! Redirecting to your dashboard...',
       });
 
-      return { error: null };
+      return { error: null, role };
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -352,16 +445,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return;
+    if (!user) {
+      console.error('Cannot update profile: user is null');
+      return;
+    }
 
     try {
-      const { error } = await supabase
+      console.log('Updating profile with:', updates);
+      
+      const { data, error } = await supabase
         .from('profiles')
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
 
+      console.log('Profile updated successfully:', data);
+      
+      // Update local state immediately
+      if (data) {
+        setProfile(data);
+      }
+      
+      // Also refetch to ensure consistency
       await fetchProfile(user.id);
 
       toast({
@@ -369,9 +480,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: 'Profile updated successfully',
       });
     } catch (error: any) {
+      console.error('Error updating profile:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: error.message || 'Failed to update profile',
         variant: 'destructive',
       });
     }

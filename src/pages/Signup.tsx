@@ -79,7 +79,7 @@ const Signup = () => {
     if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
-    const { error } = await signUp({
+    const { error, role } = await signUp({
       email: email.trim(),
       password,
       fullName: name.trim(),
@@ -93,8 +93,24 @@ const Signup = () => {
       hospitalType: selectedRole === "hospital" ? hospitalType : undefined,
     });
     
-    if (!error) {
-      navigate('/login');
+    if (!error && role) {
+      // Redirect to appropriate dashboard based on role
+      switch (role) {
+        case 'patient':
+          navigate('/dashboard/patient');
+          break;
+        case 'doctor':
+          navigate('/dashboard/doctor');
+          break;
+        case 'hospital':
+          navigate('/dashboard/hospital');
+          break;
+        case 'admin':
+          navigate('/dashboard/super-admin');
+          break;
+        default:
+          navigate('/');
+      }
     }
     
     setLoading(false);

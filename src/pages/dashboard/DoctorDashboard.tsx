@@ -20,8 +20,10 @@ import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DoctorDashboard = () => {
+  const { user, profile } = useAuth();
   const [availabilityStatus, setAvailabilityStatus] = useState<"available" | "busy" | "offline">("available");
 
   const upcomingConsultations = [
@@ -49,9 +51,9 @@ const DoctorDashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
           <div className="mb-4 sm:mb-0">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 leading-tight">
-              Welcome, <span className="gradient-text">Dr. Sarah Johnson</span>
+              Welcome, <span className="gradient-text">{profile?.full_name || 'Doctor'}</span>
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Cardiologist • Today's Schedule</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Today's Schedule</p>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
             <div className="flex items-center space-x-2">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   User, 
   Bell, 
@@ -24,20 +24,45 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePatient } from "@/hooks/useDatabase";
 
 const PatientSettings = () => {
+  const { user, profile, updateProfile } = useAuth();
+  const { patient, loading, updatePatient } = usePatient();
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "Sarah Johnson",
-    email: "sarah.johnson@email.com",
-    phone: "+91 98765 43210",
-    dateOfBirth: "1990-05-15",
-    gender: "Female",
-    bloodGroup: "O+",
-    address: "123 Health Street, Medical City",
-    emergencyContact: "+91 98765 43211",
-    emergencyName: "John Johnson"
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "",
+    bloodGroup: "",
+    address: "",
+    emergencyContact: "",
+    emergencyName: ""
   });
+
+  useEffect(() => {
+    console.log('Profile or patient data changed:', { profile, patient });
+    
+    if (profile && patient) {
+      const newProfileData = {
+        name: profile.full_name || "",
+        email: profile.email || "",
+        phone: patient.phone_number || "",
+        dateOfBirth: patient.date_of_birth || "",
+        gender: patient.gender || "",
+        bloodGroup: patient.blood_group || "",
+        address: patient.address || "",
+        emergencyContact: patient.emergency_contact_number || "",
+        emergencyName: patient.emergency_contact_name || ""
+      };
+      
+      console.log('Setting profile data:', newProfileData);
+      setProfileData(newProfileData);
+    }
+  }, [profile, patient]);
 
   const [notifications, setNotifications] = useState({
     appointments: true,
@@ -48,15 +73,42 @@ const PatientSettings = () => {
   });
 
   const medicalInfo = [
-    { label: "Blood Group", value: "O+", icon: Heart },
-    { label: "Height", value: "5'6\"", icon: User },
-    { label: "Weight", value: "65 kg", icon: User },
-    { label: "Allergies", value: "Penicillin", icon: AlertCircle },
+    { label: "Blood Group", value: profileData.bloodGroup || "Not Set", icon: Heart },
+    { label: "Gender", value: profileData.gender || "Not Set", icon: User },
+    { label: "Age", value: profileData.dateOfBirth ? new Date().getFullYear() - new Date(profileData.dateOfBirth).getFullYear() + " years" : "Not Set", icon: Calendar },
+    { label: "Emergency Contact", value: profileData.emergencyName || "Not Set", icon: AlertCircle },
   ];
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Save logic here
+  const handleSave = async () => {
+    try {
+      console.log('Saving profile data:', profileData);
+      
+      // Update profile
+      if (profile) {
+        await updateProfile({
+          full_name: profileData.name,
+          email: profileData.email,
+        });
+      }
+      
+      // Update patient data
+      if (patient) {
+        await updatePatient({
+          phone_number: profileData.phone,
+          date_of_birth: profileData.dateOfBirth,
+          gender: profileData.gender,
+          blood_group: profileData.bloodGroup,
+          address: profileData.address,
+          emergency_contact_number: profileData.emergencyContact,
+          emergency_contact_name: profileData.emergencyName
+        });
+      }
+      
+      console.log('All data saved successfully');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving data:', error);
+    }
   };
 
   const handleNotificationChange = (key: string, value: boolean) => {
@@ -65,6 +117,18 @@ const PatientSettings = () => {
       [key]: value
     }));
   };
+
+  // Show loading state while data is being fetched
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-background p-4 md:p-6 pb-24 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-background p-4 md:p-6 pb-24">
@@ -110,7 +174,7 @@ const PatientSettings = () => {
                   {/* Profile Picture */}
                   <div className="flex items-center space-x-4">
                     <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center">
-                      <span className="text-primary font-bold text-2xl">{profile.name.split(' ').map(n => n[0]).join('')}</span>
+                      <span className="text-primary font-bold text-2xl">{profileData.name.split(' ').map(n => n[0]).join('')}</span>
                     </div>
                     {isEditing && (
                       <MedicalButton variant="outline" size="sm">
@@ -125,36 +189,36 @@ const PatientSettings = () => {
                     <div>
                       <label className="text-sm font-medium mb-2 block">Full Name</label>
                       <Input
-                        value={profile.name}
+                        value={profileData.name}
                         disabled={!isEditing}
-                        onChange={(e) => setProfile({...profile, name: e.target.value})}
+                        onChange={(e) => setProfileData({...profileData, name: e.target.value})}
                       />
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">Date of Birth</label>
                       <Input
                         type="date"
-                        value={profile.dateOfBirth}
+                        value={profileData.dateOfBirth}
                         disabled={!isEditing}
-                        onChange={(e) => setProfile({...profile, dateOfBirth: e.target.value})}
+                        onChange={(e) => setProfileData({...profileData, dateOfBirth: e.target.value})}
                       />
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">Gender</label>
-                      <Select value={profile.gender} disabled={!isEditing}>
+                      <Select value={profileData.gender} disabled={!isEditing} onValueChange={(value) => setProfileData({...profileData, gender: value})}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Male">Male</SelectItem>
-                          <SelectItem value="Female">Female</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-2 block">Blood Group</label>
-                      <Select value={profile.bloodGroup} disabled={!isEditing}>
+                      <Select value={profileData.bloodGroup} disabled={!isEditing} onValueChange={(value) => setProfileData({...profileData, bloodGroup: value})}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -185,9 +249,9 @@ const PatientSettings = () => {
                         </label>
                         <Input
                           type="email"
-                          value={profile.email}
+                          value={profileData.email}
                           disabled={!isEditing}
-                          onChange={(e) => setProfile({...profile, email: e.target.value})}
+                          onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                         />
                       </div>
                       <div>
@@ -196,9 +260,9 @@ const PatientSettings = () => {
                           Phone
                         </label>
                         <Input
-                          value={profile.phone}
+                          value={profileData.phone}
                           disabled={!isEditing}
-                          onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                          onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -207,9 +271,9 @@ const PatientSettings = () => {
                           Address
                         </label>
                         <Input
-                          value={profile.address}
+                          value={profileData.address}
                           disabled={!isEditing}
-                          onChange={(e) => setProfile({...profile, address: e.target.value})}
+                          onChange={(e) => setProfileData({...profileData, address: e.target.value})}
                         />
                       </div>
                     </div>
@@ -224,17 +288,17 @@ const PatientSettings = () => {
                       <div>
                         <label className="text-sm font-medium mb-2 block">Name</label>
                         <Input
-                          value={profile.emergencyName}
+                          value={profileData.emergencyName}
                           disabled={!isEditing}
-                          onChange={(e) => setProfile({...profile, emergencyName: e.target.value})}
+                          onChange={(e) => setProfileData({...profileData, emergencyName: e.target.value})}
                         />
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-2 block">Phone</label>
                         <Input
-                          value={profile.emergencyContact}
+                          value={profileData.emergencyContact}
                           disabled={!isEditing}
-                          onChange={(e) => setProfile({...profile, emergencyContact: e.target.value})}
+                          onChange={(e) => setProfileData({...profileData, emergencyContact: e.target.value})}
                         />
                       </div>
                     </div>

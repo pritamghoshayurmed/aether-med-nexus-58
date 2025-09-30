@@ -8,58 +8,192 @@ export const usePatient = () => {
   const { user } = useAuth();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (user) {
-      fetchPatient();
-    }
-  }, [user]);
-
-  const fetchPatient = async () => {
+  const createPatientRecord = async () => {
     if (!user) return;
 
     try {
+      console.log('Creating new patient record for user:', user.id);
+      
+      // First check if profile exists
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profileData) {
+        console.error('Profile does not exist. Cannot create patient record. Profile must be created first.');
+        toast({
+          title: 'Setup Required',
+          description: 'Please log out and log in again to complete your profile setup.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Now create patient record
+      const { data, error } = await supabase
+        .from('patients')
+        .insert({
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        // If record already exists, try to fetch it
+        if (error.code === '23505') {
+          console.log('Patient record already exists, fetching...');
+          const { data: existingData, error: fetchError } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!fetchError && existingData) {
+            setPatient(existingData);
+            console.log('Existing patient record fetched:', existingData);
+            return;
+          }
+        }
+        console.error('Error creating patient record:', error);
+        return;
+      }
+
+      if (data) {
+        setPatient(data);
+        console.log('Patient record created successfully:', data);
+      }
+    } catch (error: any) {
+      console.error('Error creating patient record:', error.message);
+    }
+  };
+
+  const fetchPatient = async (isRetry = false) => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log(`Fetching patient data for user: ${user.id}${isRetry ? ' (retry)' : ''}`);
+      
       const { data, error } = await supabase
         .from('patients')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
-      setPatient(data);
+      if (error) {
+        console.error('Error fetching patient:', error);
+        
+        // If patient record doesn't exist, try to create it
+        if (error.code === 'PGRST116') {
+          console.log('Patient record not found, attempting to create...');
+          await createPatientRecord();
+          return;
+        }
+        
+        // If it's a 406 error, the profile might not exist
+        if (error.message?.includes('Not Acceptable') || error.message?.includes('406')) {
+          console.error('API returned 406 - Profile may not exist. User needs to complete signup.');
+          toast({
+            title: 'Profile Setup Required',
+            description: 'Your profile was not properly created during signup. Please log out and sign up again, or contact support.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
+        
+        // Retry logic for transient errors
+        if (retryCount < 2 && !isRetry) {
+          console.log('Retrying fetch patient...');
+          setRetryCount(prev => prev + 1);
+          setTimeout(() => fetchPatient(true), 1000);
+          return;
+        }
+        
+        throw error;
+      }
+      
+      if (data) {
+        setPatient(data);
+        setRetryCount(0); // Reset retry count on success
+        console.log('Patient data loaded successfully:', data);
+      } else {
+        console.warn('No patient data found for user:', user.id);
+      }
     } catch (error: any) {
-      console.error('Error fetching patient:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load patient data',
-        variant: 'destructive',
-      });
+      console.error('Error fetching patient:', error.message);
+      if (!isRetry) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load patient data. Please try refreshing the page.',
+          variant: 'destructive',
+        });
+      }
+      setPatient(null);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    console.log('usePatient: user changed, user.id:', user?.id);
+    if (user?.id) {
+      setLoading(true);
+      fetchPatient();
+    } else {
+      console.log('usePatient: No user, setting loading to false');
+      setLoading(false);
+      setPatient(null);
+    }
+  }, [user?.id]); // Use user.id as dependency instead of entire user object
+
   const updatePatient = async (updates: Partial<Patient>) => {
-    if (!patient) return;
+    if (!patient || !user) {
+      console.error('Cannot update: patient or user is null');
+      return;
+    }
 
     try {
-      const { error } = await supabase
+      console.log('Updating patient with:', updates);
+      
+      const { data, error } = await supabase
         .from('patients')
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', patient.id);
+        .eq('id', patient.id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Update error:', error);
+        throw error;
+      }
 
+      console.log('Patient updated successfully:', data);
+      
+      // Update local state immediately
+      if (data) {
+        setPatient(data);
+      }
+      
+      // Also refetch to ensure consistency
       await fetchPatient();
+      
       toast({
         title: 'Success',
-        description: 'Patient information updated',
+        description: 'Patient information updated successfully',
       });
     } catch (error: any) {
+      console.error('Error updating patient:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: error.message || 'Failed to update patient information',
         variant: 'destructive',
       });
     }
@@ -366,4 +500,134 @@ export const useNotifications = () => {
   };
 
   return { notifications, loading, unreadCount, markAsRead, markAllAsRead, refetch: fetchNotifications };
+};
+
+// Hook for doctor data
+export const useDoctor = () => {
+  const { user } = useAuth();
+  const [doctor, setDoctor] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      fetchDoctor();
+    }
+  }, [user]);
+
+  const fetchDoctor = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('doctors')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setDoctor(data);
+    } catch (error: any) {
+      console.error('Error fetching doctor:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load doctor data',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateDoctor = async (updates: any) => {
+    if (!doctor) return;
+
+    try {
+      const { error } = await supabase
+        .from('doctors')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', doctor.id);
+
+      if (error) throw error;
+
+      await fetchDoctor();
+      toast({
+        title: 'Success',
+        description: 'Doctor information updated',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return { doctor, loading, updateDoctor, refetch: fetchDoctor };
+};
+
+// Hook for hospital data
+export const useHospital = () => {
+  const { user } = useAuth();
+  const [hospital, setHospital] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      fetchHospital();
+    }
+  }, [user]);
+
+  const fetchHospital = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setHospital(data);
+    } catch (error: any) {
+      console.error('Error fetching hospital:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load hospital data',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateHospital = async (updates: any) => {
+    if (!hospital) return;
+
+    try {
+      const { error } = await supabase
+        .from('hospitals')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', hospital.id);
+
+      if (error) throw error;
+
+      await fetchHospital();
+      toast({
+        title: 'Success',
+        description: 'Hospital information updated',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return { hospital, loading, updateHospital, refetch: fetchHospital };
 };
