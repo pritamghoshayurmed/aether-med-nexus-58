@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
+import { useDoctors } from "@/hooks/useDoctors";
 
 const AppointmentBooking = () => {
   const navigate = useNavigate();
@@ -20,6 +21,11 @@ const AppointmentBooking = () => {
   const [selectedConsultationType, setSelectedConsultationType] = useState("all");
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
+  
+  const { doctors, loading } = useDoctors({
+    specialty: selectedSpecialty,
+    searchQuery,
+  });
   const [filteredDoctors, setFilteredDoctors] = useState([]);
 
   const specialties = [
@@ -42,118 +48,22 @@ const AppointmentBooking = () => {
     "Phone Call"
   ];
 
-  const mockDoctors = [
-    {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      specialty: "Cardiology",
-      hospital: "City General Hospital",
-      rating: 4.9,
-      reviews: 324,
-      experience: 15,
-      fee: 150,
-      location: "New York, NY",
-      distance: "2.5 km",
-      avatar: "SJ",
-      consultationTypes: ["Video Call", "In-Person"],
-      nextAvailable: "Today 2:30 PM",
-      languages: ["English", "Spanish"],
-      education: ["Harvard Medical School", "Johns Hopkins University"],
-      aboutMe: "Specialist in interventional cardiology with over 15 years of experience.",
-      availability: "available"
-    },
-    {
-      id: 2,
-      name: "Dr. Michael Chen",
-      specialty: "General Medicine",
-      hospital: "Metropolitan Medical Center",
-      rating: 4.8,
-      reviews: 256,
-      experience: 12,
-      fee: 120,
-      location: "New York, NY",
-      distance: "1.8 km",
-      avatar: "MC",
-      consultationTypes: ["Video Call", "In-Person", "Phone Call"],
-      nextAvailable: "Tomorrow 10:00 AM",
-      languages: ["English", "Mandarin"],
-      education: ["Stanford Medical School", "UCLA"],
-      aboutMe: "Primary care physician focusing on preventive medicine and wellness.",
-      availability: "available"
-    },
-    {
-      id: 3,
-      name: "Dr. Emily Rodriguez",
-      specialty: "Dermatology",
-      hospital: "Skin Health Clinic",
-      rating: 4.7,
-      reviews: 189,
-      experience: 10,
-      fee: 180,
-      location: "Brooklyn, NY",
-      distance: "5.2 km",
-      avatar: "ER",
-      consultationTypes: ["Video Call", "In-Person"],
-      nextAvailable: "Dec 30, 3:00 PM",
-      languages: ["English", "Spanish", "Portuguese"],
-      education: ["Mount Sinai School of Medicine", "Columbia University"],
-      aboutMe: "Board-certified dermatologist specializing in medical and cosmetic dermatology.",
-      availability: "busy"
-    },
-    {
-      id: 4,
-      name: "Dr. James Wilson",
-      specialty: "Orthopedics",
-      hospital: "Sports Medicine Institute",
-      rating: 4.9,
-      reviews: 412,
-      experience: 18,
-      fee: 200,
-      location: "Manhattan, NY",
-      distance: "3.7 km",
-      avatar: "JW",
-      consultationTypes: ["In-Person"],
-      nextAvailable: "Jan 2, 9:00 AM",
-      languages: ["English"],
-      education: ["Mayo Clinic", "Johns Hopkins University"],
-      aboutMe: "Orthopedic surgeon specializing in sports injuries and joint replacement.",
-      availability: "available"
-    }
-  ];
-
   useEffect(() => {
-    let filtered = mockDoctors;
+    let filtered = doctors;
 
-    // Search filter
-    if (searchQuery) {
+    // Additional client-side filters
+    // (search and specialty are already filtered in the hook)
+    
+    // Price filter
+    if (priceRange && priceRange.length === 2) {
       filtered = filtered.filter(doctor => 
-        doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doctor.hospital.toLowerCase().includes(searchQuery.toLowerCase())
+        doctor.consultation_fee >= priceRange[0] && 
+        doctor.consultation_fee <= priceRange[1]
       );
-    }
-
-    // Specialty filter
-    if (selectedSpecialty && selectedSpecialty !== "all") {
-      filtered = filtered.filter(doctor => 
-        doctor.specialty.toLowerCase() === selectedSpecialty.toLowerCase()
-      );
-    }
-
-    // Consultation type filter
-    if (selectedConsultationType && selectedConsultationType !== "all") {
-      filtered = filtered.filter(doctor => 
-        doctor.consultationTypes.includes(selectedConsultationType)
-      );
-    }
-
-    // Availability filter
-    if (availabilityFilter !== "all") {
-      filtered = filtered.filter(doctor => doctor.availability === availabilityFilter);
     }
 
     setFilteredDoctors(filtered);
-  }, [searchQuery, selectedSpecialty, selectedConsultationType, availabilityFilter]);
+  }, [doctors, priceRange]);
 
   const handleDoctorSelect = (doctorId) => {
     navigate(`/appointment/doctor/${doctorId}`);
@@ -312,84 +222,111 @@ const AppointmentBooking = () => {
           </Select>
         </div>
 
-        <div className="grid gap-4">
-          {filteredDoctors.map((doctor) => (
-            <MedicalCard 
-              key={doctor.id} 
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-primary"
-              onClick={() => handleDoctorSelect(doctor.id)}
-            >
-              <MedicalCardContent className="p-6">
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Doctor Avatar and Basic Info */}
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center text-xl font-semibold flex-shrink-0">
-                      {doctor.avatar}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-foreground mb-1">{doctor.name}</h3>
-                      <p className="text-primary font-medium mb-2">{doctor.specialty}</p>
-                      <p className="text-muted-foreground text-sm mb-2">{doctor.hospital}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="font-medium">{doctor.rating}</span>
-                          <span>({doctor.reviews} reviews)</span>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading doctors...</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {filteredDoctors.map((doctor) => {
+              const doctorInitials = doctor.profiles?.full_name
+                ?.split(' ')
+                .map(n => n[0])
+                .join('') || 'DR';
+              const availableDays = doctor.available_days || [];
+              
+              return (
+                <MedicalCard 
+                  key={doctor.id} 
+                  className="hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-primary"
+                  onClick={() => handleDoctorSelect(doctor.id)}
+                >
+                  <MedicalCardContent className="p-6">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      {/* Doctor Avatar and Basic Info */}
+                      <div className="flex gap-4">
+                        <div className="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center text-xl font-semibold flex-shrink-0">
+                          {doctorInitials}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          <span>{doctor.experience} years exp</span>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-foreground mb-1">
+                            {doctor.profiles?.full_name || 'Doctor'}
+                          </h3>
+                          <p className="text-primary font-medium mb-2">{doctor.specialty}</p>
+                          <p className="text-muted-foreground text-sm mb-2">{doctor.qualification}</p>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                              <span className="font-medium">{doctor.rating?.toFixed(1) || 'New'}</span>
+                              <span>({doctor.total_reviews || 0} reviews)</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              <span>{doctor.years_of_experience || 0} years exp</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Consultation Types and Availability */}
-                  <div className="lg:w-64 space-y-3">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Available for:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {doctor.consultationTypes.map((type) => (
-                          <Badge key={type} variant="secondary" className="text-xs">
-                            {type}
-                          </Badge>
-                        ))}
+                      {/* Consultation Types and Availability */}
+                      <div className="lg:w-64 space-y-3">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Available days:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {availableDays.length > 0 ? (
+                              availableDays.slice(0, 3).map((day) => (
+                                <Badge key={day} variant="secondary" className="text-xs capitalize">
+                                  {day}
+                                </Badge>
+                              ))
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                Schedule varies
+                              </Badge>
+                            )}
+                            {availableDays.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{availableDays.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="h-4 w-4 text-green-600" />
+                          <span className="text-green-600 font-medium">View availability</span>
+                        </div>
+
+                        <div className="text-sm text-muted-foreground">
+                          <p className="font-medium">License: {doctor.license_number}</p>
+                        </div>
+                      </div>
+
+                      {/* Price and Book Button */}
+                      <div className="lg:w-32 flex lg:flex-col justify-between lg:justify-end items-end lg:items-stretch gap-4">
+                        <div className="text-right lg:text-left">
+                          <p className="text-2xl font-bold text-primary">${doctor.consultation_fee || 0}</p>
+                          <p className="text-xs text-muted-foreground">Consultation fee</p>
+                        </div>
+                        <Button 
+                          className="h-12 px-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDoctorSelect(doctor.id);
+                          }}
+                        >
+                          Book Now
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-1 text-sm">
-                      <Clock className="h-4 w-4 text-green-600" />
-                      <span className="text-green-600 font-medium">{doctor.nextAvailable}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{doctor.distance} away</span>
-                    </div>
-                  </div>
-
-                  {/* Price and Book Button */}
-                  <div className="lg:w-32 flex lg:flex-col justify-between lg:justify-end items-end lg:items-stretch gap-4">
-                    <div className="text-right lg:text-left">
-                      <p className="text-2xl font-bold text-primary">${doctor.fee}</p>
-                      <p className="text-xs text-muted-foreground">Consultation fee</p>
-                    </div>
-                    <Button 
-                      className="h-12 px-6"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDoctorSelect(doctor.id);
-                      }}
-                    >
-                      Book Now
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              </MedicalCardContent>
-            </MedicalCard>
-          ))}
-        </div>
+                  </MedicalCardContent>
+                </MedicalCard>
+              );
+            })}
+          </div>
+        )}
 
         {filteredDoctors.length === 0 && (
           <div className="text-center py-12">

@@ -26,11 +26,17 @@ import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCreateAppointment } from "@/hooks/useDoctors";
+import { usePatient } from "@/hooks/useDatabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AppointmentConfirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { doctor, date, timeSlot, consultationType } = location.state || {};
+  const { createAppointment, creating } = useCreateAppointment();
+  const { patient } = usePatient();
+  const { user } = useAuth();
 
   const [patientInfo, setPatientInfo] = useState({
     firstName: "",
@@ -87,29 +93,59 @@ const AppointmentConfirmation = () => {
     );
   };
 
-  const handleBookAppointment = () => {
-    if (!isFormValid()) return;
+  const handleBookAppointment = async () => {
+    if (!isFormValid() || !patient || !doctor) return;
     
-    // In real app, this would make API call to book appointment
-    navigate("/appointment/success", {
-      state: {
-        appointmentDetails: {
-          doctor,
-          date,
-          timeSlot,
-          consultationType,
-          patientInfo,
-          paymentMethod,
-          appointmentId: "APT-" + Date.now()
-        }
+    const formattedDate = date.toISOString().split('T')[0];
+    
+    // Convert time slot to 24-hour format for database
+    const convertTo24Hour = (time12h: string) => {
+      const [time, modifier] = time12h.split(' ');
+      let [hours, minutes] = time.split(':');
+      if (hours === '12') {
+        hours = modifier === 'AM' ? '00' : '12';
+      } else if (modifier === 'PM') {
+        hours = String(parseInt(hours, 10) + 12);
       }
+      return `${hours.padStart(2, '0')}:${minutes}:00`;
+    };
+    
+    const result = await createAppointment({
+      patient_id: patient.id,
+      doctor_id: doctor.id,
+      appointment_date: formattedDate,
+      appointment_time: convertTo24Hour(timeSlot),
+      appointment_type: consultationType as 'video' | 'in-person' | 'phone',
+      reason: patientInfo.symptoms || undefined,
+      consultation_fee: doctor.consultation_fee || 0,
     });
+    
+    if (result) {
+      navigate("/appointment/success", {
+        state: {
+          appointmentDetails: {
+            doctor,
+            date: formattedDate,
+            timeSlot,
+            consultationType,
+            patientInfo,
+            paymentMethod,
+            appointmentId: result.id
+          }
+        }
+      });
+    }
   };
 
   if (!doctor || !date || !timeSlot || !consultationType) {
     navigate("/appointment/booking");
     return null;
   }
+
+  const doctorInitials = doctor.profiles?.full_name
+    ?.split(' ')
+    .map((n: string) => n[0])
+    .join('') || 'DR';
 
   return (
     <div className="min-h-screen bg-gradient-background pb-20">
@@ -145,16 +181,16 @@ const AppointmentConfirmation = () => {
             <div className="flex items-center gap-4 mb-6">
               <Avatar className="w-16 h-16">
                 <AvatarFallback className="bg-primary text-white text-lg font-semibold">
-                  {doctor.avatar}
+                  {doctorInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-foreground">{doctor.name}</h3>
+                <h3 className="text-lg font-bold text-foreground">{doctor.profiles?.full_name || 'Doctor'}</h3>
                 <p className="text-primary font-medium">{doctor.specialty}</p>
-                <p className="text-sm text-muted-foreground">{doctor.hospital}</p>
+                <p className="text-sm text-muted-foreground">{doctor.qualification}</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-primary">${doctor.fee}</p>
+                <p className="text-2xl font-bold text-primary">${doctor.consultation_fee || 0}</p>
                 <p className="text-xs text-muted-foreground">Consultation fee</p>
               </div>
             </div>
@@ -453,10 +489,19 @@ const AppointmentConfirmation = () => {
           <Button 
             className="w-full h-14 text-lg"
             onClick={handleBookAppointment}
-            disabled={!isFormValid()}
+            disabled={!isFormValid() || creating}
           >
-            <CheckCircle className="h-5 w-5 mr-2" />
-            Book Appointment - ${doctor.fee}
+            {creating ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Booking...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Book Appointment - ${doctor.consultation_fee || 0}
+              </>
+            )}
           </Button>
         </div>
       </div>

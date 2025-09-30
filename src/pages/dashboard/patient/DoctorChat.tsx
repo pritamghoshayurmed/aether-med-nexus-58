@@ -73,7 +73,7 @@ const PatientDoctorChat = () => {
     <div className="min-h-screen bg-gradient-background pb-20">
       <div className="h-screen flex flex-col max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-border p-4">
+        <div className="glass-card border-b border-border/30 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               {selectedChat && (
@@ -113,9 +113,9 @@ const PatientDoctorChat = () => {
 
         <div className="flex-1 flex overflow-hidden">
           {/* Chat List Sidebar */}
-          <div className={`${showChatList ? 'flex' : 'hidden'} lg:flex flex-col w-full lg:w-80 border-r border-border bg-white/50`}>
+          <div className={`${showChatList ? 'flex' : 'hidden'} lg:flex flex-col w-full lg:w-80 border-r border-border/30 glass-card`}>
             {/* Search */}
-            <div className="p-4 border-b border-border">
+            <div className="p-4 border-b border-border/30">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -136,9 +136,9 @@ const PatientDoctorChat = () => {
                 </div>
               ) : filteredDoctors.length === 0 ? (
                 <div className="p-8 text-center">
-                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No conversations yet</h3>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No conversations yet</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
                     Start a conversation after booking an appointment with a doctor
                   </p>
                   <MedicalButton 
@@ -158,19 +158,19 @@ const PatientDoctorChat = () => {
                         setSelectedChat(doctor.id);
                         setShowChatList(false);
                       }}
-                      className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                        selectedChat === doctor.id ? 'bg-muted/70' : ''
+                      className={`p-4 cursor-pointer hover:bg-primary/10 transition-colors ${
+                        selectedChat === doctor.id ? 'bg-primary/20 border-l-2 border-primary' : ''
                       }`}
                     >
                       <div className="flex items-start space-x-3">
                         <div className="relative">
                           <Avatar className="h-12 w-12">
-                            <AvatarFallback className="bg-primary/20 text-primary font-semibold">
+                            <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
                               {doctor.avatar}
                             </AvatarFallback>
                           </Avatar>
                           {doctor.online && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-success rounded-full border-2 border-background"></div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ const PatientDoctorChat = () => {
             {selectedChat && selectedDoctor ? (
               <>
                 {/* Messages Area */}
-                <ScrollArea className="flex-1 p-4 bg-muted/20">
+                <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-muted/10 to-muted/5">
                   <div className="space-y-4 max-w-4xl mx-auto">
                     {/* Empty state for new conversations */}
                     <div className="text-center py-8">
@@ -217,7 +217,7 @@ const PatientDoctorChat = () => {
                 </ScrollArea>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-border bg-white/80 backdrop-blur-sm">
+                <div className="p-4 border-t border-border/30 glass-card">
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -246,9 +246,9 @@ const PatientDoctorChat = () => {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center bg-muted/10">
+              <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-muted/10 via-primary/5 to-muted/10">
                 <div className="text-center p-8">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-primary/20 mb-4 shadow-glow">
                     <MessageSquare className="h-10 w-10 text-primary" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">Select a conversation</h3>

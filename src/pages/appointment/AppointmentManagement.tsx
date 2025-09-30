@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Calendar, 
@@ -26,6 +26,26 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
+import { useAppointments } from "@/hooks/useDatabase";
+
+// TypeScript interfaces for appointment data
+interface TransformedAppointment {
+  id: string;
+  doctor: {
+    name: string;
+    specialty: string;
+    hospital: string;
+    avatar: string;
+  };
+  date: Date;
+  time: string;
+  type: string;
+  status: string;
+  fee: number;
+  patientNotes: string;
+  canReschedule: boolean;
+  canCancel: boolean;
+}
 
 const AppointmentManagement = () => {
   const navigate = useNavigate();
@@ -33,78 +53,56 @@ const AppointmentManagement = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [activeTab, setActiveTab] = useState("upcoming");
 
-  const mockAppointments = [
-    {
-      id: "APT-001",
-      doctor: {
-        name: "Dr. Sarah Johnson",
-        specialty: "Cardiology",
-        hospital: "City General Hospital",
-        avatar: "SJ"
-      },
-      date: new Date("2024-12-29"),
-      time: "2:30 PM",
-      type: "Video Call",
-      status: "confirmed",
-      fee: 150,
-      patientNotes: "Regular checkup for heart condition",
-      canReschedule: true,
-      canCancel: true
-    },
-    {
-      id: "APT-002", 
-      doctor: {
-        name: "Dr. Michael Chen",
-        specialty: "General Medicine",
-        hospital: "Metropolitan Medical Center",
-        avatar: "MC"
-      },
-      date: new Date("2025-01-02"),
-      time: "10:00 AM",
-      type: "In-Person",
-      status: "confirmed",
-      fee: 120,
-      patientNotes: "Annual physical examination",
-      canReschedule: true,
-      canCancel: true
-    },
-    {
-      id: "APT-003",
-      doctor: {
-        name: "Dr. Emily Rodriguez",
-        specialty: "Dermatology", 
-        hospital: "Skin Health Clinic",
-        avatar: "ER"
-      },
-      date: new Date("2024-12-15"),
-      time: "3:00 PM",
-      type: "In-Person",
-      status: "completed",
-      fee: 180,
-      patientNotes: "Skin examination and mole check",
-      canReschedule: false,
-      canCancel: false
-    },
-    {
-      id: "APT-004",
-      doctor: {
-        name: "Dr. James Wilson",
-        specialty: "Orthopedics",
-        hospital: "Sports Medicine Institute", 
-        avatar: "JW"
-      },
-      date: new Date("2024-11-20"),
-      time: "9:00 AM",
-      type: "In-Person",
-      status: "cancelled",
-      fee: 200,
-      patientNotes: "Knee pain consultation",
-      canReschedule: false,
-      canCancel: false
-    }
-  ];
+  // Fetch appointments from Supabase
+  const { appointments: dbAppointments, loading: appointmentsLoading, updateAppointment, refetch } = useAppointments();
 
-  const getStatusColor = (status) => {
+  // Transform database appointments to component format
+  const mockAppointments = dbAppointments.map((apt: any) => {
+    const doctorName = apt.doctors?.profiles?.full_name || 'Unknown Doctor';
+    const getInitials = (name: string) => {
+      const parts = name.split(' ');
+      return parts.length >= 2 
+        ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+        : name.substring(0, 2).toUpperCase();
+    };
+
+    // Combine date and time for proper Date object
+    const appointmentDateTime = new Date(`${apt.appointment_date}T${apt.appointment_time}`);
+    
+    // Map status: 'scheduled' -> 'confirmed'
+    const mappedStatus = apt.status === 'scheduled' ? 'confirmed' : apt.status;
+    
+    // Map appointment type
+    const typeMap: Record<string, string> = {
+      'video': 'Video Call',
+      'phone': 'Phone Call',
+      'in-person': 'In-Person'
+    };
+
+    return {
+      id: apt.id,
+      doctor: {
+        name: doctorName,
+        specialty: apt.doctors?.specialty || 'General',
+        hospital: 'Medical Center', // You may want to add hospital info to the doctors table
+        avatar: getInitials(doctorName)
+      },
+      date: appointmentDateTime,
+      time: new Date(`2000-01-01T${apt.appointment_time}`).toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      }),
+      type: typeMap[apt.appointment_type] || 'In-Person',
+      status: mappedStatus,
+      fee: apt.consultation_fee || 0,
+      patientNotes: apt.reason || apt.notes || '',
+      canReschedule: apt.status === 'scheduled',
+      canCancel: apt.status === 'scheduled'
+    };
+  });
+
+  const getStatusColor = (status: string): string => {
     switch (status) {
       case "confirmed":
         return "bg-green-100 text-green-800";
@@ -119,7 +117,7 @@ const AppointmentManagement = () => {
     }
   };
 
-  const formatDate = (date) => {
+  const formatDate = (date: Date): string => {
     return date.toLocaleDateString('en-US', { 
       weekday: 'short', 
       month: 'short', 
@@ -128,11 +126,13 @@ const AppointmentManagement = () => {
     });
   };
 
-  const isUpcoming = (date) => {
-    return date >= new Date().setHours(0, 0, 0, 0);
+  const isUpcoming = (date: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date >= today;
   };
 
-  const filterAppointments = (appointments, tab) => {
+  const filterAppointments = (appointments: TransformedAppointment[], tab: string): TransformedAppointment[] => {
     let filtered = appointments;
 
     // Filter by tab
@@ -161,17 +161,21 @@ const AppointmentManagement = () => {
     return filtered;
   };
 
-  const handleCancelAppointment = (appointmentId) => {
-    // In real app, this would make API call
-    console.log("Cancelling appointment:", appointmentId);
+  const handleCancelAppointment = async (appointmentId: string) => {
+    try {
+      await updateAppointment(appointmentId, { status: 'cancelled' });
+      await refetch(); // Refresh the appointments list
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+    }
   };
 
-  const handleRescheduleAppointment = (appointmentId) => {
+  const handleRescheduleAppointment = (appointmentId: string): void => {
     // Navigate to reschedule page
     navigate(`/appointment/reschedule/${appointmentId}`);
   };
 
-  const handleBookNewAppointment = () => {
+  const handleBookNewAppointment = (): void => {
     navigate("/appointment/booking");
   };
 
@@ -241,7 +245,12 @@ const AppointmentManagement = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-4 mt-6">
-            {filteredAppointments.length > 0 ? (
+            {appointmentsLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-white">Loading appointments...</p>
+              </div>
+            ) : filteredAppointments.length > 0 ? (
               filteredAppointments.map((appointment) => (
                 <MedicalCard key={appointment.id} className="hover:shadow-md transition-shadow">
                   <MedicalCardContent className="p-6">

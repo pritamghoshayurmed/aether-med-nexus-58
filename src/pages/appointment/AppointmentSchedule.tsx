@@ -19,24 +19,19 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useDoctor, useDoctorAppointments } from "@/hooks/useDoctors";
 
 const AppointmentSchedule = () => {
   const navigate = useNavigate();
   const { doctorId } = useParams();
+  const { doctor, loading } = useDoctor(doctorId);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [selectedConsultationType, setSelectedConsultationType] = useState("");
   const [currentWeekStart, setCurrentWeekStart] = useState(new Date());
-
-  const doctor = {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    specialty: "Cardiology", 
-    hospital: "City General Hospital",
-    avatar: "SJ",
-    fee: 150,
-    consultationTypes: ["Video Call", "In-Person", "Phone Call"]
-  };
+  
+  const formattedDate = selectedDate.toISOString().split('T')[0];
+  const { bookedSlots, loading: slotsLoading } = useDoctorAppointments(doctorId, formattedDate);
 
   // Generate dates for the current week
   const getWeekDates = (startDate) => {
@@ -52,23 +47,18 @@ const AppointmentSchedule = () => {
     return dates;
   };
 
-  // Generate available time slots for a given date
-  const getTimeSlots = (date) => {
-    const day = date.getDay();
+  // Generate available time slots for a given date based on doctor's schedule
+  const getTimeSlots = (date: Date) => {
+    if (!doctor || !doctor.available_time_slots) return [];
     
-    // Example time slots (in a real app, this would come from an API)
-    const morning = ["9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"];
-    const afternoon = ["1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"];
-    const evening = ["5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM"];
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const daySlots = doctor.available_time_slots[dayName] || [];
     
-    // No slots on Sunday (day === 0)
-    if (day === 0) return [];
+    if (!Array.isArray(daySlots)) return [];
     
-    const allSlots = [...morning, ...afternoon, ...(day < 6 ? evening : [])];
-    
-    return allSlots.map(slot => ({
+    return daySlots.map(slot => ({
       time: slot,
-      available: Math.random() > 0.3 // 70% chance of being available
+      available: !bookedSlots.includes(slot)
     }));
   };
 
@@ -126,6 +116,35 @@ const AppointmentSchedule = () => {
   const timeSlots = getTimeSlots(selectedDate);
   const canContinue = selectedDate && selectedTimeSlot && selectedConsultationType;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading doctor information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!doctor) {
+    return (
+      <div className="min-h-screen bg-gradient-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-muted-foreground mb-4">Doctor not found</p>
+          <Button onClick={() => navigate('/appointment/booking')}>
+            Back to Doctors
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const doctorInitials = doctor.profiles?.full_name
+    ?.split(' ')
+    .map(n => n[0])
+    .join('') || 'DR';
+
   return (
     <div className="min-h-screen bg-gradient-background pb-20">
       {/* Header */}
@@ -157,16 +176,16 @@ const AppointmentSchedule = () => {
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16">
                 <AvatarFallback className="text-xl font-semibold bg-primary text-primary-foreground">
-                  {doctor.avatar}
+                  {doctorInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-foreground">{doctor.name}</h3>
+                <h3 className="text-lg font-bold text-foreground">{doctor.profiles?.full_name || 'Doctor'}</h3>
                 <p className="text-primary font-medium">{doctor.specialty}</p>
-                <p className="text-sm text-muted-foreground">{doctor.hospital}</p>
+                <p className="text-sm text-muted-foreground">{doctor.qualification}</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-primary">${doctor.fee}</p>
+                <p className="text-2xl font-bold text-primary">${doctor.consultation_fee || 0}</p>
                 <p className="text-xs text-muted-foreground">Consultation fee</p>
               </div>
             </div>
@@ -180,20 +199,20 @@ const AppointmentSchedule = () => {
           </MedicalCardHeader>
           <MedicalCardContent className="space-y-4">
             <RadioGroup value={selectedConsultationType} onValueChange={setSelectedConsultationType}>
-              {doctor.consultationTypes.map((type) => (
+              {['video', 'in-person', 'phone'].map((type) => (
                 <div key={type} className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/50 cursor-pointer">
                   <RadioGroupItem value={type} id={type} />
                   <Label htmlFor={type} className="flex items-center space-x-3 cursor-pointer flex-1">
                     <div className="flex items-center space-x-3">
-                      {type === "Video Call" && <Video className="h-5 w-5 text-primary" />}
-                      {type === "Phone Call" && <Phone className="h-5 w-5 text-primary" />}
-                      {type === "In-Person" && <Building className="h-5 w-5 text-primary" />}
+                      {type === "video" && <Video className="h-5 w-5 text-primary" />}
+                      {type === "phone" && <Phone className="h-5 w-5 text-primary" />}
+                      {type === "in-person" && <Building className="h-5 w-5 text-primary" />}
                       <div>
-                        <p className="font-medium">{type}</p>
+                        <p className="font-medium capitalize">{type.replace('-', ' ')}</p>
                         <p className="text-sm text-muted-foreground">
-                          {type === "Video Call" && "Connect via secure video call from anywhere"}
-                          {type === "Phone Call" && "Audio consultation over the phone"}
-                          {type === "In-Person" && "Visit the doctor's clinic in person"}
+                          {type === "video" && "Connect via secure video call from anywhere"}
+                          {type === "phone" && "Audio consultation over the phone"}
+                          {type === "in-person" && "Visit the doctor's clinic in person"}
                         </p>
                       </div>
                     </div>
@@ -293,11 +312,11 @@ const AppointmentSchedule = () => {
             <MedicalCardContent className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Doctor:</span>
-                <span className="font-medium">{doctor.name}</span>
+                <span className="font-medium">{doctor.profiles?.full_name || 'Doctor'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Consultation Type:</span>
-                <span className="font-medium">{selectedConsultationType}</span>
+                <span className="font-medium capitalize">{selectedConsultationType.replace('-', ' ')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Date:</span>
@@ -309,7 +328,7 @@ const AppointmentSchedule = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Consultation Fee:</span>
-                <span className="font-medium text-primary">${doctor.fee}</span>
+                <span className="font-medium text-primary">${doctor.consultation_fee || 0}</span>
               </div>
             </MedicalCardContent>
           </MedicalCard>
