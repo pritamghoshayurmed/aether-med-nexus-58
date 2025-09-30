@@ -12,10 +12,6 @@ import {
   Pill,
   Bed,
   FileText,
-  TestTube,
-  Shield,
-  Users,
-  CreditCard,
   User
 } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
@@ -133,11 +129,7 @@ const PatientDashboard = () => {
             { icon: Activity, label: "Check Vitals", variant: "glass" as const, path: "/dashboard/patient/vitals" },
             { icon: FileText, label: "Medical Records", variant: "glass" as const, path: "/dashboard/patient/medical-records" },
             { icon: Pill, label: "Prescriptions", variant: "glass" as const, path: "/dashboard/patient/prescriptions" },
-            { icon: TestTube, label: "Lab Results", variant: "glass" as const, path: "/dashboard/patient/lab-results" },
             { icon: Bed, label: "Hospital Beds", variant: "glass" as const, path: "/dashboard/patient/hospital-beds" },
-            { icon: Shield, label: "Insurance", variant: "glass" as const, path: "/dashboard/patient/insurance" },
-            { icon: Users, label: "Family Members", variant: "glass" as const, path: "/dashboard/patient/family-members" },
-            { icon: CreditCard, label: "Billing", variant: "glass" as const, path: "/dashboard/patient/billing" },
           ].map((action, index) => (
             <MedicalButton
               key={action.label}
