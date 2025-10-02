@@ -53,6 +53,7 @@ import AppointmentConfirmation from "./pages/appointment/AppointmentConfirmation
 import AppointmentSuccess from "./pages/appointment/AppointmentSuccess";
 import AppointmentManagement from "./pages/appointment/AppointmentManagement";
 import AppointmentReschedule from "./pages/appointment/AppointmentReschedule";
+import VitalsMeasurement from "./pages/dashboard/VitalsMeasurement";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/dashboard/patient" element={<ProtectedRoute allowedRoles={['patient']}><PatientDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/patient/appointments" element={<ProtectedRoute allowedRoles={['patient']}><AppointmentManagement /></ProtectedRoute>} />
             <Route path="/dashboard/patient/vitals" element={<ProtectedRoute allowedRoles={['patient']}><PatientVitals /></ProtectedRoute>} />
+            <Route path="/dashboard/patient/vitals/measure" element={<ProtectedRoute allowedRoles={['patient']}><VitalsMeasurement /></ProtectedRoute>} />
             <Route path="/dashboard/patient/ai-chat" element={<ProtectedRoute allowedRoles={['patient']}><PatientAIChat /></ProtectedRoute>} />
             <Route path="/dashboard/patient/settings" element={<ProtectedRoute allowedRoles={['patient']}><PatientSettings /></ProtectedRoute>} />
             <Route path="/dashboard/patient/hospital-beds" element={<ProtectedRoute allowedRoles={['patient']}><HospitalBeds /></ProtectedRoute>} />
