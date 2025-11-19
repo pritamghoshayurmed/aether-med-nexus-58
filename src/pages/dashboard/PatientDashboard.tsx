@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { 
-  Calendar, 
-  Heart, 
-  Brain, 
+import {
+  Calendar,
+  Heart,
+  Brain,
   Bell,
   Search,
   MapPin,
@@ -33,21 +33,24 @@ const PatientDashboard = () => {
   const { appointments, loading: appointmentsLoading } = useAppointments();
   const { vitals, loading: vitalsLoading } = useVitals();
   const { unreadCount } = useNotifications();
-  const { 
-    nearbyPlaces, 
-    loading: placesLoading, 
+  const {
+    nearbyPlaces,
+    loading: placesLoading,
     error: placesError,
     permissionDenied,
     locationSource,
     location,
     refreshLocation,
     setManualLocation,
+    searchByPinCode,
     getCurrentLocationInfo
   } = useNearbyPlaces();
   const [activeTab, setActiveTab] = useState("overview");
   const [showManualLocation, setShowManualLocation] = useState(false);
   const [manualLat, setManualLat] = useState("");
   const [manualLng, setManualLng] = useState("");
+  const [pinCode, setPinCode] = useState("");
+  const [inputMode, setInputMode] = useState<'coords' | 'pin'>('pin');
   const [useDMS, setUseDMS] = useState(false);
   const [selectedFacility, setSelectedFacility] = useState<any>(null);
   const [showFacilityModal, setShowFacilityModal] = useState(false);
@@ -61,19 +64,19 @@ const PatientDashboard = () => {
     .slice(0, 3);
 
   const vitalsData = [
-    { 
-      label: "Heart Rate", 
-      value: latestVitals?.heart_rate ? `${latestVitals.heart_rate} bpm` : 'N/A', 
-      status: "normal", 
-      icon: Heart, 
-      color: "text-success" 
+    {
+      label: "Heart Rate",
+      value: latestVitals?.heart_rate ? `${latestVitals.heart_rate} bpm` : 'N/A',
+      status: "normal",
+      icon: Heart,
+      color: "text-success"
     },
-    { 
-      label: "Respiratory Rate", 
-      value: latestVitals?.respiratory_rate ? `${latestVitals.respiratory_rate} BrPM` : 'N/A', 
-      status: "normal", 
-      icon: Activity, 
-      color: "text-success" 
+    {
+      label: "Respiratory Rate",
+      value: latestVitals?.respiratory_rate ? `${latestVitals.respiratory_rate} BrPM` : 'N/A',
+      status: "normal",
+      icon: Activity,
+      color: "text-success"
     },
   ];
 
@@ -89,9 +92,9 @@ const PatientDashboard = () => {
             <p className="text-sm sm:text-base text-muted-foreground">Here's your health overview for today</p>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
-            <MedicalButton 
-              variant="ghost" 
-              size="icon" 
+            <MedicalButton
+              variant="ghost"
+              size="icon"
               className="min-w-[44px] min-h-[44px] relative"
               onClick={() => window.location.href = '/dashboard/patient/notifications'}
             >
@@ -102,16 +105,16 @@ const PatientDashboard = () => {
                 </span>
               )}
             </MedicalButton>
-            <MedicalButton 
-              variant="ghost" 
-              size="icon" 
+            <MedicalButton
+              variant="ghost"
+              size="icon"
               className="min-w-[44px] min-h-[44px]"
               onClick={() => window.location.href = '/dashboard/patient/profile'}
             >
               <User className="h-5 w-5" />
             </MedicalButton>
-            <MedicalButton 
-              variant="medical" 
+            <MedicalButton
+              variant="medical"
               className="flex-1 sm:flex-initial min-h-[44px]"
               onClick={() => window.location.href = '/appointment/booking'}
             >
@@ -155,8 +158,8 @@ const PatientDashboard = () => {
                     <Calendar className="mr-2 h-5 w-5 text-primary" />
                     Upcoming Appointments
                   </MedicalCardTitle>
-                  <MedicalButton 
-                    size="sm" 
+                  <MedicalButton
+                    size="sm"
                     variant="medical"
                     onClick={() => window.location.href = '/appointment/booking'}
                   >
@@ -209,7 +212,7 @@ const PatientDashboard = () => {
                       <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">No upcoming appointments</h3>
                       <p className="text-gray-600 mb-4">Schedule your first appointment with a healthcare provider</p>
-                      <MedicalButton 
+                      <MedicalButton
                         variant="medical"
                         onClick={() => window.location.href = '/appointment/booking'}
                       >
@@ -233,7 +236,7 @@ const PatientDashboard = () => {
                 <div className="space-y-4">
                   <div className="bg-primary/10 rounded-lg p-4">
                     <p className="text-sm mb-3">
-                      <span className="font-medium">AI Suggestion:</span> Based on your recent vitals, 
+                      <span className="font-medium">AI Suggestion:</span> Based on your recent vitals,
                       consider scheduling a routine cardiology check-up within the next month.
                     </p>
                     <MedicalButton size="sm" variant="medical">
@@ -290,8 +293,8 @@ const PatientDashboard = () => {
                     )}
                   </div>
                 )}
-                <MedicalButton 
-                  variant="outline" 
+                <MedicalButton
+                  variant="outline"
                   className="w-full mt-4"
                   onClick={() => window.location.href = '/dashboard/patient/vitals'}
                 >
@@ -319,7 +322,7 @@ const PatientDashboard = () => {
                         </Badge>
                         {location.accuracy && location.accuracy > 0 && (
                           <span className="text-xs text-muted-foreground">
-                            ±{location.accuracy > 1000 ? `${(location.accuracy/1000).toFixed(1)}km` : `${location.accuracy.toFixed(0)}m`}
+                            ±{location.accuracy > 1000 ? `${(location.accuracy / 1000).toFixed(1)}km` : `${location.accuracy.toFixed(0)}m`}
                           </span>
                         )}
                       </div>
@@ -353,111 +356,171 @@ const PatientDashboard = () => {
                   <div className="mb-4 p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs font-medium">
-                        Set Your Precise Location
+                        Set Your Location
                       </p>
-                      <MedicalButton
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setUseDMS(!useDMS)}
-                        className="text-xs h-6 px-2"
-                      >
-                        {useDMS ? '🔢 Use Decimal' : '🧭 Use DMS'}
-                      </MedicalButton>
+                      <div className="flex space-x-1">
+                        <MedicalButton
+                          size="sm"
+                          variant={inputMode === 'pin' ? 'secondary' : 'ghost'}
+                          onClick={() => setInputMode('pin')}
+                          className="text-xs h-6 px-2"
+                        >
+                          📮 PIN Code
+                        </MedicalButton>
+                        <MedicalButton
+                          size="sm"
+                          variant={inputMode === 'coords' ? 'secondary' : 'ghost'}
+                          onClick={() => setInputMode('coords')}
+                          className="text-xs h-6 px-2"
+                        >
+                          📍 Coords
+                        </MedicalButton>
+                      </div>
                     </div>
-                    
-                    {useDMS ? (
-                      <>
+
+                    {inputMode === 'pin' ? (
+                      <div className="mb-3">
                         <p className="text-xs text-muted-foreground mb-2">
-                          Enter in DMS format (e.g., 22°46'54.2"N)
+                          Enter your 6-digit PIN Code
                         </p>
-                        <div className="flex space-x-2 mb-2">
+                        <div className="flex space-x-2">
                           <Input
-                            placeholder="22°46'54.2&quot;N"
-                            value={manualLat}
-                            onChange={(e) => setManualLat(e.target.value)}
+                            placeholder="e.g. 700001"
+                            value={pinCode}
+                            onChange={(e) => setPinCode(e.target.value)}
                             className="text-xs h-8"
+                            maxLength={6}
                           />
-                          <Input
-                            placeholder="87°51'48.4&quot;E"
-                            value={manualLng}
-                            onChange={(e) => setManualLng(e.target.value)}
+                          <MedicalButton
+                            size="sm"
+                            variant="medical"
+                            onClick={async () => {
+                              if (pinCode.length !== 6) {
+                                alert('Please enter a valid 6-digit PIN code');
+                                return;
+                              }
+                              await searchByPinCode(pinCode);
+                              setShowManualLocation(false);
+                              setPinCode("");
+                            }}
                             className="text-xs h-8"
-                          />
+                            disabled={placesLoading}
+                          >
+                            {placesLoading ? '...' : 'Search'}
+                          </MedicalButton>
                         </div>
-                      </>
+                      </div>
                     ) : (
                       <>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Enter decimal coordinates (e.g., 22.781717, 87.863430)
-                        </p>
-                        <div className="flex space-x-2 mb-2">
-                          <Input
-                            placeholder="Latitude (22.781717)"
-                            value={manualLat}
-                            onChange={(e) => setManualLat(e.target.value)}
-                            className="text-xs h-8"
-                          />
-                          <Input
-                            placeholder="Longitude (87.863430)"
-                            value={manualLng}
-                            onChange={(e) => setManualLng(e.target.value)}
-                            className="text-xs h-8"
-                          />
+                        <div className="flex items-center justify-end mb-2">
+                          <MedicalButton
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setUseDMS(!useDMS)}
+                            className="text-xs h-6 px-2"
+                          >
+                            {useDMS ? '🔢 Use Decimal' : '🧭 Use DMS'}
+                          </MedicalButton>
+                        </div>
+
+                        {useDMS ? (
+                          <>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              Enter in DMS format (e.g., 22°46'54.2"N)
+                            </p>
+                            <div className="flex space-x-2 mb-2">
+                              <Input
+                                placeholder="22°46'54.2&quot;N"
+                                value={manualLat}
+                                onChange={(e) => setManualLat(e.target.value)}
+                                className="text-xs h-8"
+                              />
+                              <Input
+                                placeholder="87°51'48.4&quot;E"
+                                value={manualLng}
+                                onChange={(e) => setManualLng(e.target.value)}
+                                className="text-xs h-8"
+                              />
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              Enter decimal coordinates (e.g., 22.781717, 87.863430)
+                            </p>
+                            <div className="flex space-x-2 mb-2">
+                              <Input
+                                placeholder="Latitude (22.781717)"
+                                value={manualLat}
+                                onChange={(e) => setManualLat(e.target.value)}
+                                className="text-xs h-8"
+                              />
+                              <Input
+                                placeholder="Longitude (87.863430)"
+                                value={manualLng}
+                                onChange={(e) => setManualLng(e.target.value)}
+                                className="text-xs h-8"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        <div className="flex flex-wrap gap-2">
+                          <MedicalButton
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              let lat: number, lng: number;
+
+                              if (useDMS) {
+                                // Parse DMS format
+                                const parsedLat = parseDMS(manualLat);
+                                const parsedLng = parseDMS(manualLng);
+
+                                if (parsedLat === null || parsedLng === null) {
+                                  alert('Invalid DMS format. Example: 22°46\'54.2"N');
+                                  return;
+                                }
+                                lat = parsedLat;
+                                lng = parsedLng;
+                              } else {
+                                // Parse decimal format
+                                lat = parseFloat(manualLat);
+                                lng = parseFloat(manualLng);
+
+                                if (isNaN(lat) || isNaN(lng)) {
+                                  alert('Please enter valid decimal coordinates');
+                                  return;
+                                }
+                              }
+
+                              await setManualLocation(lat, lng);
+                              setShowManualLocation(false);
+                              setManualLat("");
+                              setManualLng("");
+                            }}
+                            className="text-xs h-7"
+                          >
+                            Set Location
+                          </MedicalButton>
+                          <MedicalButton
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              await setManualLocation(22.781717, 87.863430); // Your precise location
+                              setShowManualLocation(false);
+                              setManualLat("");
+                              setManualLng("");
+                            }}
+                            className="text-xs h-7"
+                          >
+                            📍 Use My Area
+                          </MedicalButton>
                         </div>
                       </>
                     )}
-                    
-                    <div className="flex flex-wrap gap-2">
-                      <MedicalButton
-                        size="sm"
-                        variant="outline"
-                        onClick={async () => {
-                          let lat: number, lng: number;
-                          
-                          if (useDMS) {
-                            // Parse DMS format
-                            const parsedLat = parseDMS(manualLat);
-                            const parsedLng = parseDMS(manualLng);
-                            
-                            if (parsedLat === null || parsedLng === null) {
-                              alert('Invalid DMS format. Example: 22°46\'54.2"N');
-                              return;
-                            }
-                            lat = parsedLat;
-                            lng = parsedLng;
-                          } else {
-                            // Parse decimal format
-                            lat = parseFloat(manualLat);
-                            lng = parseFloat(manualLng);
-                            
-                            if (isNaN(lat) || isNaN(lng)) {
-                              alert('Please enter valid decimal coordinates');
-                              return;
-                            }
-                          }
-                          
-                          await setManualLocation(lat, lng);
-                          setShowManualLocation(false);
-                          setManualLat("");
-                          setManualLng("");
-                        }}
-                        className="text-xs h-7"
-                      >
-                        Set Location
-                      </MedicalButton>
-                      <MedicalButton
-                        size="sm"
-                        variant="outline"
-                        onClick={async () => {
-                          await setManualLocation(22.781717, 87.863430); // Your precise location
-                          setShowManualLocation(false);
-                          setManualLat("");
-                          setManualLng("");
-                        }}
-                        className="text-xs h-7"
-                      >
-                        📍 Use My Area
-                      </MedicalButton>
+
+                    <div className="flex justify-end mt-2">
                       <MedicalButton
                         size="sm"
                         variant="ghost"
@@ -465,12 +528,14 @@ const PatientDashboard = () => {
                           setShowManualLocation(false);
                           setManualLat("");
                           setManualLng("");
+                          setPinCode("");
                         }}
                         className="text-xs h-7"
                       >
                         Cancel
                       </MedicalButton>
                     </div>
+
                     {getCurrentLocationInfo() && (
                       <div className="mt-2 p-2 bg-muted/30 rounded text-xs">
                         <p className="font-medium mb-1">Current Location:</p>
@@ -500,7 +565,7 @@ const PatientDashboard = () => {
                     </AlertDescription>
                   </Alert>
                 )}
-                
+
                 {nearbyPlaces.length > 0 && !placesLoading && (
                   <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
                     <p className="text-xs text-blue-700 dark:text-blue-300">
@@ -508,7 +573,7 @@ const PatientDashboard = () => {
                     </p>
                   </div>
                 )}
-                
+
                 <div className="space-y-3">
                   {placesLoading ? (
                     <div className="text-center py-6">
@@ -517,8 +582,8 @@ const PatientDashboard = () => {
                     </div>
                   ) : nearbyPlaces.length > 0 ? (
                     nearbyPlaces.map((place, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-all cursor-pointer border-2 border-transparent hover:border-primary/50"
                         onClick={() => {
                           setSelectedFacility(place);
@@ -529,10 +594,10 @@ const PatientDashboard = () => {
                           <h4 className="font-medium text-sm line-clamp-1" title={place.name}>
                             {place.name}
                           </h4>
-                          <Badge 
+                          <Badge
                             variant={
-                              place.status === "available" || place.status === "open" 
-                                ? "default" 
+                              place.status === "available" || place.status === "open"
+                                ? "default"
                                 : "secondary"
                             }
                             className="text-xs ml-2 shrink-0"
