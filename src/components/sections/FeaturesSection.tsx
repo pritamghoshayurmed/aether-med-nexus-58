@@ -1,6 +1,6 @@
-import { Phone, Database, Package, PhoneCall } from "lucide-react";
+import { Database, Package } from "lucide-react";
 import { MedicalCard } from "@/components/ui/medical-card";
-import { MedicalButton } from "@/components/ui/medical-button";
+
 
 const FeaturesSection = () => {
   const features = [
@@ -16,12 +16,7 @@ const FeaturesSection = () => {
       description: "Find medicines instantly at nearby pharmacies",
       details: "Live inventory tracking with availability status"
     },
-    {
-      icon: Phone,
-      title: "AI Symptom Checker",
-      description: "Smart diagnosis through voice calls in 22+ languages",
-      details: "Works on any phone, even basic keypad models"
-    }
+
   ];
 
   return (
@@ -35,13 +30,13 @@ const FeaturesSection = () => {
             <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl">Features</span>
           </h2>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-2">
-            Experience the future of healthcare with our innovative solutions designed 
+            Experience the future of healthcare with our innovative solutions designed
             for everyone, everywhere - from smartphones to basic phones.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-12 md:mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-12 md:mb-16 max-w-5xl mx-auto">
           {features.map((feature, index) => (
             <MedicalCard
               key={feature.title}
@@ -66,37 +61,7 @@ const FeaturesSection = () => {
           ))}
         </div>
 
-        {/* Call-to-Action for AI Agent */}
-        <div className="text-center">
-          <MedicalCard variant="glass" className="max-w-2xl mx-auto">
-            <div className="p-8">
-              <div className="mb-6">
-                <PhoneCall className="h-12 w-12 text-primary mx-auto mb-4" />
-                <h3 className="text-2xl font-bold mb-3">
-                  Try Our AI Health Assistant
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Experience intelligent healthcare guidance through a simple phone call. 
-                  Available 24/7 in multiple Indian languages.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <div className="text-3xl font-bold text-primary">
-                  +91 98765 43210
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Call now - Free consultation available
-                </p>
-                <MedicalButton asChild variant="medical" size="lg" className="group">
-                  <a href="tel:+919876543210" rel="noopener noreferrer">
-                    <PhoneCall className="mr-2 h-5 w-5" />
-                    Call AI Assistant
-                  </a>
-                </MedicalButton>
-              </div>
-            </div>
-          </MedicalCard>
-        </div>
+
       </div>
     </section>
   );
