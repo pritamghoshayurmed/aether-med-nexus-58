@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Stethoscope, Building2, Shield, FileText } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Stethoscope, Shield, FileText, Mic, Globe, CreditCard } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
@@ -27,15 +27,24 @@ const Signup = () => {
   // Role specific fields
   const [doctorLicenseNo, setDoctorLicenseNo] = useState("");
   const [doctorSpecialty, setDoctorSpecialty] = useState("");
-  const [hospitalName, setHospitalName] = useState("");
-  const [hospitalRegNo, setHospitalRegNo] = useState("");
-  const [hospitalType, setHospitalType] = useState("hospital");
 
   const roles = [
-    { id: "patient", label: "Patient", icon: User, color: "text-primary" },
-    { id: "doctor", label: "Doctor", icon: Stethoscope, color: "text-success" },
-    { id: "hospital", label: "Hospital/Clinic", icon: Building2, color: "text-warning" },
-    { id: "admin", label: "Admin", icon: Shield, color: "text-destructive" },
+    {
+      id: "patient",
+      label: "Patient",
+      icon: User,
+      color: "text-primary",
+      description: "Access healthcare services",
+      features: ["Voice-first search", "Family profiles", "Video consultations", "Digital prescriptions"]
+    },
+    {
+      id: "doctor",
+      label: "Doctor",
+      icon: Stethoscope,
+      color: "text-success",
+      description: "Provide telemedicine care",
+      features: ["AI-powered notes", "Smart prescriptions", "Revenue tracking", "Slot management"]
+    },
   ];
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -64,12 +73,6 @@ const Signup = () => {
     if (selectedRole === "doctor" && !doctorSpecialty.trim()) {
       newErrors.doctorSpecialty = "Specialty is required for doctors";
     }
-    if (selectedRole === "hospital" && !hospitalName.trim()) {
-      newErrors.hospitalName = "Hospital/Clinic name is required";
-    }
-    if (selectedRole === "hospital" && !hospitalRegNo.trim()) {
-      newErrors.hospitalRegNo = "Registration number is required for hospitals/clinics";
-    }
 
     if (!acceptedTerms) {
       newErrors.terms = "You must accept the terms and conditions to continue";
@@ -87,12 +90,8 @@ const Signup = () => {
       // Doctor specific
       licenseNumber: selectedRole === "doctor" ? doctorLicenseNo.trim() : undefined,
       specialty: selectedRole === "doctor" ? doctorSpecialty.trim() : undefined,
-      // Hospital specific
-      hospitalName: selectedRole === "hospital" ? hospitalName.trim() : undefined,
-      registrationNumber: selectedRole === "hospital" ? hospitalRegNo.trim() : undefined,
-      hospitalType: selectedRole === "hospital" ? hospitalType : undefined,
     });
-    
+
     if (!error && role) {
       // Redirect to appropriate dashboard based on role
       switch (role) {
@@ -102,17 +101,11 @@ const Signup = () => {
         case 'doctor':
           navigate('/dashboard/doctor');
           break;
-        case 'hospital':
-          navigate('/dashboard/hospital');
-          break;
-        case 'admin':
-          navigate('/dashboard/super-admin');
-          break;
         default:
           navigate('/');
       }
     }
-    
+
     setLoading(false);
   };
 
@@ -139,27 +132,44 @@ const Signup = () => {
         <MedicalCard variant="glass" className="animate-slide-in">
           <MedicalCardHeader>
             <MedicalCardTitle className="text-center text-2xl">Create Account</MedicalCardTitle>
-            <p className="text-center text-muted-foreground">Sign up as a patient, doctor, hospital or admin</p>
+            <p className="text-center text-muted-foreground">Join as a patient or healthcare provider</p>
           </MedicalCardHeader>
 
           <MedicalCardContent>
             <div className="mb-6">
               <Label className="text-sm font-medium mb-3 block">Select Your Role</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {roles.map((role) => (
                   <button
                     key={role.id}
                     type="button"
                     onClick={() => setSelectedRole(role.id)}
                     className={cn(
-                      "flex items-center space-x-2 p-3 rounded-lg border transition-all duration-200",
+                      "flex flex-col items-start p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] text-left",
                       selectedRole === role.id
-                        ? "bg-primary/20 border-primary text-primary"
-                        : "bg-muted/50 border-border hover:bg-muted/80"
+                        ? "bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-lg shadow-primary/20"
+                        : "bg-muted/30 border-border/50 hover:border-primary/50 hover:bg-muted/50"
                     )}
                   >
-                    <role.icon className={cn("h-4 w-4", selectedRole === role.id ? role.color : "text-muted-foreground")} />
-                    <span className="text-sm font-medium">{role.label}</span>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className={cn(
+                        "p-2 rounded-lg transition-all",
+                        selectedRole === role.id ? "bg-primary/20" : "bg-muted/50"
+                      )}>
+                        <role.icon className={cn("h-5 w-5", selectedRole === role.id ? role.color : "text-muted-foreground")} />
+                      </div>
+                      <div>
+                        <span className="text-base font-semibold block">{role.label}</span>
+                        <span className="text-xs text-muted-foreground">{role.description}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {role.features.slice(0, 2).map((feature, idx) => (
+                        <span key={idx} className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -278,42 +288,6 @@ const Signup = () => {
                 </>
               )}
 
-              {selectedRole === "hospital" && (
-                <>
-                  <div>
-                    <Label htmlFor="hospitalName">Hospital/Clinic Name</Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="hospitalName"
-                        type="text"
-                        value={hospitalName}
-                        onChange={(e) => setHospitalName(e.target.value)}
-                        className="pl-10"
-                        placeholder="Enter hospital or clinic name"
-                        required
-                      />
-                    </div>
-                    {errors.hospitalName && <p className="text-xs text-destructive mt-1">{errors.hospitalName}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="hospitalRegNo">Registration Number</Label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="hospitalRegNo"
-                        type="text"
-                        value={hospitalRegNo}
-                        onChange={(e) => setHospitalRegNo(e.target.value)}
-                        className="pl-10"
-                        placeholder="Enter registration or license number"
-                        required
-                      />
-                    </div>
-                    {errors.hospitalRegNo && <p className="text-xs text-destructive mt-1">{errors.hospitalRegNo}</p>}
-                  </div>
-                </>
-              )}
 
               <div className="flex items-start space-x-3">
                 <Checkbox
@@ -332,9 +306,9 @@ const Signup = () => {
               </div>
               {errors.terms && <p className="text-xs text-destructive mt-1">{errors.terms}</p>}
 
-              <MedicalButton 
-                type="submit" 
-                variant="medical" 
+              <MedicalButton
+                type="submit"
+                variant="medical"
                 className="w-full"
                 disabled={loading}
               >

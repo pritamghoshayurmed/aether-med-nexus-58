@@ -15,8 +15,6 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndCondition from "./pages/TermsAndCondition";
 import PatientDashboard from "./pages/dashboard/PatientDashboard";
 import DoctorDashboard from "./pages/dashboard/DoctorDashboard";
-import HospitalDashboard from "./pages/dashboard/HospitalDashboard";
-import SuperAdminDashboard from "./pages/dashboard/SuperAdminDashboard";
 import PatientAppointments from "./pages/dashboard/patient/Appointments";
 import PatientVitals from "./pages/dashboard/patient/Vitals";
 import PatientAIChat from "./pages/dashboard/patient/AIChat";
@@ -40,11 +38,6 @@ import DoctorChat from "./pages/dashboard/doctor/DoctorChat";
 import AIAnalytics from "./pages/dashboard/doctor/AIAnalytics";
 import PrescriptionGenerator from "./pages/dashboard/doctor/PrescriptionGenerator";
 import RevenueTracking from "./pages/dashboard/doctor/RevenueTracking";
-import Resources from "./pages/dashboard/hospital/Resources";
-import HospitalAppointments from "./pages/dashboard/hospital/Appointments";
-import Staff from "./pages/dashboard/hospital/Staff";
-import Reports from "./pages/dashboard/hospital/Reports";
-import SupplyChain from "./pages/dashboard/hospital/SupplyChain";
 import NotFound from "./pages/NotFound";
 import AppointmentBooking from "./pages/appointment/AppointmentBooking";
 import DoctorProfile from "./pages/appointment/DoctorProfile";
@@ -73,7 +66,7 @@ const App = () => (
             <Route path="/support" element={<Support />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-and-condition" element={<TermsAndCondition />} />
-            
+
             {/* Protected Patient Routes */}
             <Route path="/dashboard/patient" element={<ProtectedRoute allowedRoles={['patient']}><PatientDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/patient/appointments" element={<ProtectedRoute allowedRoles={['patient']}><AppointmentManagement /></ProtectedRoute>} />
@@ -94,7 +87,7 @@ const App = () => (
             <Route path="/dashboard/patient/billing" element={<ProtectedRoute allowedRoles={['patient']}><Billing /></ProtectedRoute>} />
             <Route path="/dashboard/patient/notifications" element={<ProtectedRoute allowedRoles={['patient']}><Notifications /></ProtectedRoute>} />
             <Route path="/dashboard/patient/find-doctors" element={<ProtectedRoute allowedRoles={['patient']}><FindDoctors /></ProtectedRoute>} />
-            
+
             {/* Protected Doctor Routes */}
             <Route path="/dashboard/doctor" element={<ProtectedRoute allowedRoles={['doctor']}><DoctorDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/doctor/patients" element={<ProtectedRoute allowedRoles={['doctor']}><PatientManagement /></ProtectedRoute>} />
@@ -103,22 +96,7 @@ const App = () => (
             <Route path="/dashboard/doctor/analytics" element={<ProtectedRoute allowedRoles={['doctor']}><AIAnalytics /></ProtectedRoute>} />
             <Route path="/dashboard/doctor/prescription" element={<ProtectedRoute allowedRoles={['doctor']}><PrescriptionGenerator /></ProtectedRoute>} />
             <Route path="/dashboard/doctor/revenue" element={<ProtectedRoute allowedRoles={['doctor']}><RevenueTracking /></ProtectedRoute>} />
-            
-            {/* Protected Hospital Routes */}
-            <Route path="/dashboard/hospital" element={<ProtectedRoute allowedRoles={['hospital']}><HospitalDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/hospital/resources" element={<ProtectedRoute allowedRoles={['hospital']}><Resources /></ProtectedRoute>} />
-            <Route path="/dashboard/hospital/appointments" element={<ProtectedRoute allowedRoles={['hospital']}><HospitalAppointments /></ProtectedRoute>} />
-            <Route path="/dashboard/hospital/staff" element={<ProtectedRoute allowedRoles={['hospital']}><Staff /></ProtectedRoute>} />
-            <Route path="/dashboard/hospital/reports" element={<ProtectedRoute allowedRoles={['hospital']}><Reports /></ProtectedRoute>} />
-            <Route path="/dashboard/hospital/supply-chain" element={<ProtectedRoute allowedRoles={['hospital']}><SupplyChain /></ProtectedRoute>} />
-            
-            {/* Protected Admin Routes */}
-            <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin']}><SuperAdminDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/admin/analytics" element={<ProtectedRoute allowedRoles={['admin']}><SuperAdminDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/admin/compliance" element={<ProtectedRoute allowedRoles={['admin']}><SuperAdminDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/admin/supply-chain" element={<ProtectedRoute allowedRoles={['admin']}><SuperAdminDashboard /></ProtectedRoute>} />
-            <Route path="/dashboard/admin/complaints" element={<ProtectedRoute allowedRoles={['admin']}><SuperAdminDashboard /></ProtectedRoute>} />
-            
+
             {/* Appointment Booking Routes */}
             <Route path="/appointment/booking" element={<AppointmentBooking />} />
             <Route path="/appointment/doctor/:doctorId" element={<DoctorProfile />} />
@@ -127,11 +105,11 @@ const App = () => (
             <Route path="/appointment/success" element={<AppointmentSuccess />} />
             <Route path="/appointment/management" element={<AppointmentManagement />} />
             <Route path="/appointment/reschedule/:appointmentId" element={<AppointmentReschedule />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

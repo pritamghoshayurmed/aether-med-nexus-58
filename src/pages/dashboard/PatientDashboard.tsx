@@ -14,7 +14,16 @@ import {
   FileText,
   User,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Mic,
+  Users,
+  Wallet,
+  Volume2,
+  Video,
+  Smartphone,
+  Timer,
+  CreditCard,
+  ChevronRight
 } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
@@ -54,6 +63,8 @@ const PatientDashboard = () => {
   const [useDMS, setUseDMS] = useState(false);
   const [selectedFacility, setSelectedFacility] = useState<any>(null);
   const [showFacilityModal, setShowFacilityModal] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceQuery, setVoiceQuery] = useState("");
 
   // Get latest vital signs
   const latestVitals = vitals.length > 0 ? vitals[0] : null;
@@ -62,6 +73,16 @@ const PatientDashboard = () => {
   const upcomingAppointments = appointments
     .filter(apt => new Date(apt.appointment_date) >= new Date())
     .slice(0, 3);
+
+  // Mock token tracking data
+  const tokenData = upcomingAppointments.length > 0 ? {
+    tokenNumber: 5,
+    currentToken: 3,
+    estimatedWait: "~10 mins"
+  } : null;
+
+  // Mock wallet balance
+  const walletBalance = "₹2,500";
 
   const vitalsData = [
     {
@@ -80,18 +101,43 @@ const PatientDashboard = () => {
     },
   ];
 
+  // Voice search simulation
+  const handleVoiceSearch = () => {
+    setIsListening(true);
+    // Simulate voice recognition
+    setTimeout(() => {
+      setVoiceQuery("Chest pain specialist");
+      setIsListening(false);
+    }, 2000);
+  };
+
+  // Quick Actions with features from requirements
+  const quickActions = [
+    { icon: Mic, label: "Voice Search", variant: "medical" as const, path: "#voice", highlight: true },
+    { icon: Calendar, label: "Book Appointment", variant: "glass" as const, path: "/appointment/booking" },
+    { icon: Video, label: "Video Consult", variant: "glass" as const, path: "/dashboard/patient/video-call" },
+    { icon: Activity, label: "PPG Vital Scan", variant: "glass" as const, path: "/dashboard/patient/vitals" },
+    { icon: Users, label: "Family Vault", variant: "glass" as const, path: "/dashboard/patient/family-members" },
+    { icon: FileText, label: "Prescriptions", variant: "glass" as const, path: "/dashboard/patient/prescriptions" },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-background p-3 sm:p-4 md:p-6 pb-20 sm:pb-24">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with Wallet */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8">
           <div className="mb-4 sm:mb-0">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 leading-tight">
-              Good morning, <span className="gradient-text">{profile?.full_name || 'Patient'}</span>
+              Namaste, <span className="gradient-text">{profile?.full_name || 'Patient'}</span>
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Here's your health overview for today</p>
+            <p className="text-sm sm:text-base text-muted-foreground">Your health companion is ready</p>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
+            {/* Kabiraj Wallet */}
+            <div className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-gradient-to-r from-primary/20 to-success/20 border border-primary/30">
+              <Wallet className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-primary">{walletBalance}</span>
+            </div>
             <MedicalButton
               variant="ghost"
               size="icon"
@@ -113,36 +159,57 @@ const PatientDashboard = () => {
             >
               <User className="h-5 w-5" />
             </MedicalButton>
-            <MedicalButton
-              variant="medical"
-              className="flex-1 sm:flex-initial min-h-[44px]"
-              onClick={() => window.location.href = '/appointment/booking'}
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Book Appointment</span>
-              <span className="sm:hidden">Book</span>
-            </MedicalButton>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          {[
-            { icon: Calendar, label: "Book Appointment", variant: "glass" as const, path: "/appointment/booking" },
-            { icon: Brain, label: "AI Health Chat", variant: "glass" as const, path: "/dashboard/patient/ai-chat" },
-            { icon: Activity, label: "Check Vitals", variant: "glass" as const, path: "/dashboard/patient/vitals" },
-            { icon: FileText, label: "Medical Records", variant: "glass" as const, path: "/dashboard/patient/medical-records" },
-            { icon: Pill, label: "Prescriptions", variant: "glass" as const, path: "/dashboard/patient/prescriptions" },
-            { icon: Bed, label: "Hospital Beds", variant: "glass" as const, path: "/dashboard/patient/hospital-beds" },
-          ].map((action, index) => (
+        {/* Voice-First Search Bar - FR-04 */}
+        <MedicalCard variant="glass" className="mb-6 medical-glow">
+          <MedicalCardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={voiceQuery || "Search doctors, symptoms, or say 'Chest pain'..."}
+                  className="pl-10 pr-12 h-12 text-base"
+                  value={voiceQuery}
+                  onChange={(e) => setVoiceQuery(e.target.value)}
+                />
+                <MedicalButton
+                  variant={isListening ? "medical" : "ghost"}
+                  size="icon"
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${isListening ? 'animate-pulse' : ''}`}
+                  onClick={handleVoiceSearch}
+                >
+                  <Mic className={`h-5 w-5 ${isListening ? 'text-white' : ''}`} />
+                </MedicalButton>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2 mt-3">
+              <Badge variant="outline" className="text-xs">Hindi</Badge>
+              <Badge variant="outline" className="text-xs">Bengali</Badge>
+              <Badge variant="outline" className="text-xs">+ 10 languages</Badge>
+              <span className="text-xs text-muted-foreground ml-auto">Powered by AI</span>
+            </div>
+          </MedicalCardContent>
+        </MedicalCard>
+
+        {/* Quick Actions - Feature-focused */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          {quickActions.map((action, index) => (
             <MedicalButton
               key={action.label}
               variant={action.variant}
-              className="min-h-[80px] sm:h-20 flex-col space-y-2 p-3 touch-manipulation"
-              onClick={() => window.location.href = action.path}
+              className={`min-h-[80px] sm:h-20 flex-col space-y-2 p-3 touch-manipulation ${action.highlight ? 'bg-gradient-to-br from-primary to-primary-glow text-white hover:from-primary/90 hover:to-primary-glow/90' : ''}`}
+              onClick={() => {
+                if (action.path === '#voice') {
+                  handleVoiceSearch();
+                } else {
+                  window.location.href = action.path;
+                }
+              }}
             >
-              <action.icon className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="text-xs sm:text-sm text-center leading-tight">{action.label}</span>
+              <action.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${action.highlight ? 'text-white' : ''}`} />
+              <span className={`text-xs sm:text-sm text-center leading-tight ${action.highlight ? 'text-white' : ''}`}>{action.label}</span>
             </MedicalButton>
           ))}
         </div>
@@ -150,6 +217,33 @@ const PatientDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Live Token Tracking - FR-07 */}
+            {tokenData && (
+              <MedicalCard variant="glass" className="border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
+                <MedicalCardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
+                        <span className="text-2xl font-bold text-primary">#{tokenData.tokenNumber}</span>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Your Token</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Current: #{tokenData.currentToken} • Wait: {tokenData.estimatedWait}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Timer className="h-5 w-5 text-primary animate-pulse" />
+                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                        Live
+                      </Badge>
+                    </div>
+                  </div>
+                </MedicalCardContent>
+              </MedicalCard>
+            )}
+
             {/* Upcoming Appointments */}
             <MedicalCard variant="glass">
               <MedicalCardHeader>
@@ -176,7 +270,7 @@ const PatientDashboard = () => {
                     </div>
                   ) : upcomingAppointments.length > 0 ? (
                     upcomingAppointments.map((appointment: any) => (
-                      <div key={appointment.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                      <div key={appointment.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted/70 transition-colors">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
                             <span className="text-primary font-medium">
@@ -201,7 +295,8 @@ const PatientDashboard = () => {
                           <Badge className="mb-2 capitalize">{appointment.status}</Badge>
                           {appointment.appointment_type === 'video' && (
                             <MedicalButton size="sm" variant="medical">
-                              Join Call
+                              <Video className="h-3 w-3 mr-1" />
+                              Join
                             </MedicalButton>
                           )}
                         </div>
@@ -209,9 +304,9 @@ const PatientDashboard = () => {
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No upcoming appointments</h3>
-                      <p className="text-gray-600 mb-4">Schedule your first appointment with a healthcare provider</p>
+                      <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No upcoming appointments</h3>
+                      <p className="text-muted-foreground mb-4">Use voice search to find a doctor</p>
                       <MedicalButton
                         variant="medical"
                         onClick={() => window.location.href = '/appointment/booking'}
@@ -224,7 +319,7 @@ const PatientDashboard = () => {
               </MedicalCardContent>
             </MedicalCard>
 
-            {/* AI Health Assistant */}
+            {/* AI Health Assistant with Audio Rx - FR-20 */}
             <MedicalCard variant="glass" className="medical-glow">
               <MedicalCardHeader>
                 <MedicalCardTitle className="flex items-center">
@@ -234,21 +329,68 @@ const PatientDashboard = () => {
               </MedicalCardHeader>
               <MedicalCardContent>
                 <div className="space-y-4">
-                  <div className="bg-primary/10 rounded-lg p-4">
-                    <p className="text-sm mb-3">
-                      <span className="font-medium">AI Suggestion:</span> Based on your recent vitals,
-                      consider scheduling a routine cardiology check-up within the next month.
-                    </p>
-                    <MedicalButton size="sm" variant="medical">
-                      Schedule Check-up
-                    </MedicalButton>
+                  <div className="bg-gradient-to-r from-primary/10 to-success/10 rounded-xl p-4 border border-primary/20">
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 rounded-lg bg-primary/20">
+                        <Brain className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm mb-3">
+                          <span className="font-medium">AI Suggestion:</span> Based on your recent vitals,
+                          consider scheduling a routine cardiology check-up within the next month.
+                        </p>
+                        <MedicalButton size="sm" variant="medical">
+                          Schedule Check-up
+                        </MedicalButton>
+                      </div>
+                    </div>
                   </div>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Describe your symptoms..."
-                      className="pl-10"
-                    />
+
+                  {/* Audio Prescription Feature */}
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <Volume2 className="h-5 w-5 text-primary" />
+                        <span className="font-medium">Audio Prescriptions</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">New</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Listen to your prescriptions in your preferred language
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <MedicalButton size="sm" variant="outline">
+                        <Volume2 className="h-3 w-3 mr-1" />
+                        Play in Hindi
+                      </MedicalButton>
+                      <MedicalButton size="sm" variant="outline">
+                        <Volume2 className="h-3 w-3 mr-1" />
+                        Play in Bengali
+                      </MedicalButton>
+                    </div>
+                  </div>
+                </div>
+              </MedicalCardContent>
+            </MedicalCard>
+
+            {/* Offline Health Records - FR-21 */}
+            <MedicalCard variant="glass">
+              <MedicalCardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-success/20">
+                      <Smartphone className="h-5 w-5 text-success" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Offline Health Records</h4>
+                      <p className="text-sm text-muted-foreground">Last 10 prescriptions cached</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="bg-success/10 text-success border-success/30">
+                      ✓ Synced
+                    </Badge>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
               </MedicalCardContent>
@@ -257,12 +399,12 @@ const PatientDashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Vitals Monitoring */}
+            {/* PPG Vitals Monitoring - FR-13 */}
             <MedicalCard variant="glass">
               <MedicalCardHeader>
                 <MedicalCardTitle className="flex items-center">
                   <Heart className="mr-2 h-5 w-5 text-primary" />
-                  Current Vitals
+                  PPG Vital Scan
                 </MedicalCardTitle>
               </MedicalCardHeader>
               <MedicalCardContent>
@@ -294,13 +436,78 @@ const PatientDashboard = () => {
                   </div>
                 )}
                 <MedicalButton
-                  variant="outline"
+                  variant="medical"
                   className="w-full mt-4"
-                  onClick={() => window.location.href = '/dashboard/patient/vitals'}
+                  onClick={() => window.location.href = '/dashboard/patient/vitals/measure'}
                 >
                   <Activity className="mr-2 h-4 w-4" />
-                  {latestVitals ? 'Update Vitals' : 'Record Vitals'}
+                  Start PPG Scan
                 </MedicalButton>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Uses camera + flashlight for heart rate measurement
+                </p>
+              </MedicalCardContent>
+            </MedicalCard>
+
+            {/* Family Vault - FR-03 */}
+            <MedicalCard variant="glass">
+              <MedicalCardHeader>
+                <div className="flex items-center justify-between">
+                  <MedicalCardTitle className="flex items-center">
+                    <Users className="mr-2 h-5 w-5 text-primary" />
+                    Family Vault
+                  </MedicalCardTitle>
+                  <Badge variant="outline" className="text-xs">3/6</Badge>
+                </div>
+              </MedicalCardHeader>
+              <MedicalCardContent>
+                <div className="space-y-3">
+                  {['Self', 'Spouse', 'Child'].map((member, idx) => (
+                    <div key={member} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <User className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="text-sm font-medium">{member}</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ))}
+                </div>
+                <MedicalButton
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => window.location.href = '/dashboard/patient/family-members'}
+                >
+                  Manage Family Profiles
+                </MedicalButton>
+              </MedicalCardContent>
+            </MedicalCard>
+
+            {/* Payment Methods - FR-16 */}
+            <MedicalCard variant="glass">
+              <MedicalCardHeader>
+                <MedicalCardTitle className="flex items-center">
+                  <CreditCard className="mr-2 h-5 w-5 text-primary" />
+                  Payment Options
+                </MedicalCardTitle>
+              </MedicalCardHeader>
+              <MedicalCardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center space-x-2">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <span className="text-sm font-medium">Kabiraj Wallet</span>
+                    </div>
+                    <span className="text-sm font-semibold text-primary">{walletBalance}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="text-xs">GPay</Badge>
+                    <Badge variant="outline" className="text-xs">PhonePe</Badge>
+                    <Badge variant="outline" className="text-xs">UPI</Badge>
+                    <Badge variant="outline" className="text-xs">Cards</Badge>
+                  </div>
+                </div>
               </MedicalCardContent>
             </MedicalCard>
 
@@ -320,258 +527,28 @@ const PatientDashboard = () => {
                           {locationSource === 'ip' && '🌐 IP Location'}
                           {locationSource === 'manual' && '📌 Manual'}
                         </Badge>
-                        {location.accuracy && location.accuracy > 0 && (
-                          <span className="text-xs text-muted-foreground">
-                            ±{location.accuracy > 1000 ? `${(location.accuracy / 1000).toFixed(1)}km` : `${location.accuracy.toFixed(0)}m`}
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <MedicalButton
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setShowManualLocation(!showManualLocation)}
-                      className="min-w-[32px] min-h-[32px] p-1"
-                      title="Set location manually"
-                    >
-                      <MapPin className="h-4 w-4" />
-                    </MedicalButton>
-                    <MedicalButton
-                      size="sm"
-                      variant="ghost"
-                      onClick={refreshLocation}
-                      disabled={placesLoading}
-                      className="min-w-[32px] min-h-[32px] p-1"
-                      title="Refresh location"
-                    >
-                      <RefreshCw className={`h-4 w-4 ${placesLoading ? 'animate-spin' : ''}`} />
-                    </MedicalButton>
-                  </div>
+                  <MedicalButton
+                    size="sm"
+                    variant="ghost"
+                    onClick={refreshLocation}
+                    disabled={placesLoading}
+                    className="min-w-[32px] min-h-[32px] p-1"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${placesLoading ? 'animate-spin' : ''}`} />
+                  </MedicalButton>
                 </div>
               </MedicalCardHeader>
               <MedicalCardContent>
-                {showManualLocation && (
-                  <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-medium">
-                        Set Your Location
-                      </p>
-                      <div className="flex space-x-1">
-                        <MedicalButton
-                          size="sm"
-                          variant={inputMode === 'pin' ? 'secondary' : 'ghost'}
-                          onClick={() => setInputMode('pin')}
-                          className="text-xs h-6 px-2"
-                        >
-                          📮 PIN Code
-                        </MedicalButton>
-                        <MedicalButton
-                          size="sm"
-                          variant={inputMode === 'coords' ? 'secondary' : 'ghost'}
-                          onClick={() => setInputMode('coords')}
-                          className="text-xs h-6 px-2"
-                        >
-                          📍 Coords
-                        </MedicalButton>
-                      </div>
-                    </div>
-
-                    {inputMode === 'pin' ? (
-                      <div className="mb-3">
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Enter your 6-digit PIN Code
-                        </p>
-                        <div className="flex space-x-2">
-                          <Input
-                            placeholder="e.g. 700001"
-                            value={pinCode}
-                            onChange={(e) => setPinCode(e.target.value)}
-                            className="text-xs h-8"
-                            maxLength={6}
-                          />
-                          <MedicalButton
-                            size="sm"
-                            variant="medical"
-                            onClick={async () => {
-                              if (pinCode.length !== 6) {
-                                alert('Please enter a valid 6-digit PIN code');
-                                return;
-                              }
-                              await searchByPinCode(pinCode);
-                              setShowManualLocation(false);
-                              setPinCode("");
-                            }}
-                            className="text-xs h-8"
-                            disabled={placesLoading}
-                          >
-                            {placesLoading ? '...' : 'Search'}
-                          </MedicalButton>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center justify-end mb-2">
-                          <MedicalButton
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setUseDMS(!useDMS)}
-                            className="text-xs h-6 px-2"
-                          >
-                            {useDMS ? '🔢 Use Decimal' : '🧭 Use DMS'}
-                          </MedicalButton>
-                        </div>
-
-                        {useDMS ? (
-                          <>
-                            <p className="text-xs text-muted-foreground mb-2">
-                              Enter in DMS format (e.g., 22°46'54.2"N)
-                            </p>
-                            <div className="flex space-x-2 mb-2">
-                              <Input
-                                placeholder="22°46'54.2&quot;N"
-                                value={manualLat}
-                                onChange={(e) => setManualLat(e.target.value)}
-                                className="text-xs h-8"
-                              />
-                              <Input
-                                placeholder="87°51'48.4&quot;E"
-                                value={manualLng}
-                                onChange={(e) => setManualLng(e.target.value)}
-                                className="text-xs h-8"
-                              />
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-xs text-muted-foreground mb-2">
-                              Enter decimal coordinates (e.g., 22.781717, 87.863430)
-                            </p>
-                            <div className="flex space-x-2 mb-2">
-                              <Input
-                                placeholder="Latitude (22.781717)"
-                                value={manualLat}
-                                onChange={(e) => setManualLat(e.target.value)}
-                                className="text-xs h-8"
-                              />
-                              <Input
-                                placeholder="Longitude (87.863430)"
-                                value={manualLng}
-                                onChange={(e) => setManualLng(e.target.value)}
-                                className="text-xs h-8"
-                              />
-                            </div>
-                          </>
-                        )}
-
-                        <div className="flex flex-wrap gap-2">
-                          <MedicalButton
-                            size="sm"
-                            variant="outline"
-                            onClick={async () => {
-                              let lat: number, lng: number;
-
-                              if (useDMS) {
-                                // Parse DMS format
-                                const parsedLat = parseDMS(manualLat);
-                                const parsedLng = parseDMS(manualLng);
-
-                                if (parsedLat === null || parsedLng === null) {
-                                  alert('Invalid DMS format. Example: 22°46\'54.2"N');
-                                  return;
-                                }
-                                lat = parsedLat;
-                                lng = parsedLng;
-                              } else {
-                                // Parse decimal format
-                                lat = parseFloat(manualLat);
-                                lng = parseFloat(manualLng);
-
-                                if (isNaN(lat) || isNaN(lng)) {
-                                  alert('Please enter valid decimal coordinates');
-                                  return;
-                                }
-                              }
-
-                              await setManualLocation(lat, lng);
-                              setShowManualLocation(false);
-                              setManualLat("");
-                              setManualLng("");
-                            }}
-                            className="text-xs h-7"
-                          >
-                            Set Location
-                          </MedicalButton>
-                          <MedicalButton
-                            size="sm"
-                            variant="outline"
-                            onClick={async () => {
-                              await setManualLocation(22.781717, 87.863430); // Your precise location
-                              setShowManualLocation(false);
-                              setManualLat("");
-                              setManualLng("");
-                            }}
-                            className="text-xs h-7"
-                          >
-                            📍 Use My Area
-                          </MedicalButton>
-                        </div>
-                      </>
-                    )}
-
-                    <div className="flex justify-end mt-2">
-                      <MedicalButton
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setShowManualLocation(false);
-                          setManualLat("");
-                          setManualLng("");
-                          setPinCode("");
-                        }}
-                        className="text-xs h-7"
-                      >
-                        Cancel
-                      </MedicalButton>
-                    </div>
-
-                    {getCurrentLocationInfo() && (
-                      <div className="mt-2 p-2 bg-muted/30 rounded text-xs">
-                        <p className="font-medium mb-1">Current Location:</p>
-                        <p className="text-muted-foreground">
-                          📍 {getCurrentLocationInfo()?.coordinates.latitude.toFixed(6)}°N, {getCurrentLocationInfo()?.coordinates.longitude.toFixed(6)}°E
-                        </p>
-                        <p className="text-muted-foreground mt-1">
-                          📏 {getCurrentLocationInfo()?.distanceFromArambagh} from Arambagh
-                        </p>
-                      </div>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">
-                      💡 Tip: You can convert DMS (22°46'54.2"N) to decimal using Google
-                    </p>
-                  </div>
-                )}
                 {placesError && (
                   <Alert variant="destructive" className="mb-3">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-xs">
                       {placesError}
-                      {permissionDenied && (
-                        <span className="block mt-2">
-                          Please enable location permissions in your browser settings.
-                        </span>
-                      )}
                     </AlertDescription>
                   </Alert>
-                )}
-
-                {nearbyPlaces.length > 0 && !placesLoading && (
-                  <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
-                      💡 Click on any facility to view details, contact info, and get directions
-                    </p>
-                  </div>
                 )}
 
                 <div className="space-y-3">
@@ -581,72 +558,31 @@ const PatientDashboard = () => {
                       <p className="text-xs text-muted-foreground">Finding nearby facilities...</p>
                     </div>
                   ) : nearbyPlaces.length > 0 ? (
-                    nearbyPlaces.map((place, index) => (
+                    nearbyPlaces.slice(0, 3).map((place, index) => (
                       <div
                         key={index}
-                        className="p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-all cursor-pointer border-2 border-transparent hover:border-primary/50"
+                        className="p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-all cursor-pointer"
                         onClick={() => {
                           setSelectedFacility(place);
                           setShowFacilityModal(true);
                         }}
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-sm line-clamp-1" title={place.name}>
-                            {place.name}
-                          </h4>
-                          <Badge
-                            variant={
-                              place.status === "available" || place.status === "open"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="text-xs ml-2 shrink-0"
-                          >
-                            {place.status}
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-medium text-sm line-clamp-1">{place.name}</h4>
+                          <Badge variant="outline" className="text-xs ml-2">
+                            {place.distance}
                           </Badge>
                         </div>
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="text-muted-foreground">{place.type}</span>
-                          <span className="text-primary font-medium">{place.distance}</span>
-                        </div>
-                        {place.address && (
-                          <div className="flex items-start mt-2 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3 mr-1 mt-0.5 shrink-0" />
-                            <span className="line-clamp-1" title={place.address}>{place.address}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between mt-2">
-                          {place.type === "Hospital" ? (
-                            <div className="flex items-center text-xs">
-                              <Activity className="h-3 w-3 mr-1 text-success" />
-                              <span className="text-muted-foreground">Healthcare Facility</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center text-xs">
-                              <Pill className="h-3 w-3 mr-1 text-success" />
-                              <span className="text-muted-foreground">Medicines Available</span>
-                            </div>
-                          )}
-                          <span className="text-xs text-primary font-medium">
-                            Tap for details →
-                          </span>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          <span className="line-clamp-1">{place.type}</span>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-6">
-                      <MapPin className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground mb-3">
-                        No nearby facilities found
-                      </p>
-                      <MedicalButton
-                        size="sm"
-                        variant="outline"
-                        onClick={refreshLocation}
-                      >
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Refresh Location
-                      </MedicalButton>
+                    <div className="text-center py-4">
+                      <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No nearby facilities found</p>
                     </div>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Heart, Mail, Lock, User, Stethoscope, Building2, Shield } from "lucide-react";
+import { Eye, EyeOff, Heart, Mail, Lock, User, Stethoscope, Shield } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
@@ -21,10 +21,8 @@ const Login = () => {
   const { signIn, user, checkRememberedSession } = useAuth();
 
   const roles = [
-    { id: "patient", label: "Patient", icon: User, color: "text-primary" },
-    { id: "doctor", label: "Doctor", icon: Stethoscope, color: "text-success" },
-    { id: "hospital", label: "Hospital", icon: Building2, color: "text-warning" },
-    { id: "admin", label: "Admin", icon: Shield, color: "text-destructive" },
+    { id: "patient", label: "Patient", icon: User, color: "text-primary", description: "Book appointments & manage health" },
+    { id: "doctor", label: "Doctor", icon: Stethoscope, color: "text-success", description: "Manage patients & consultations" },
   ];
 
   // Check for remembered session on mount
@@ -59,12 +57,6 @@ const Login = () => {
         break;
       case 'doctor':
         navigate('/dashboard/doctor');
-        break;
-      case 'hospital':
-        navigate('/dashboard/hospital');
-        break;
-      case 'admin':
-        navigate('/dashboard/super-admin');
         break;
       default:
         navigate('/');
@@ -132,21 +124,29 @@ const Login = () => {
             {/* Role Selection */}
             <div className="mb-6">
               <Label className="text-sm font-medium mb-3 block">Select Your Role</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {roles.map((role) => (
                   <button
                     key={role.id}
                     type="button"
                     onClick={() => setSelectedRole(role.id)}
                     className={cn(
-                      "flex items-center space-x-2 p-3 rounded-lg border transition-all duration-200",
+                      "flex flex-col items-start p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02]",
                       selectedRole === role.id
-                        ? "bg-primary/20 border-primary text-primary"
-                        : "bg-muted/50 border-border hover:bg-muted/80"
+                        ? "bg-gradient-to-br from-primary/20 to-primary/10 border-primary shadow-lg shadow-primary/20"
+                        : "bg-muted/30 border-border/50 hover:border-primary/50 hover:bg-muted/50"
                     )}
                   >
-                    <role.icon className={cn("h-4 w-4", selectedRole === role.id ? role.color : "text-muted-foreground")} />
-                    <span className="text-sm font-medium">{role.label}</span>
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className={cn(
+                        "p-2 rounded-lg transition-all",
+                        selectedRole === role.id ? "bg-primary/20" : "bg-muted/50"
+                      )}>
+                        <role.icon className={cn("h-5 w-5", selectedRole === role.id ? role.color : "text-muted-foreground")} />
+                      </div>
+                      <span className="text-base font-semibold">{role.label}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{role.description}</span>
                   </button>
                 ))}
               </div>
@@ -195,7 +195,7 @@ const Login = () => {
 
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center space-x-2 cursor-pointer">
-                  <Checkbox 
+                  <Checkbox
                     id="remember-me"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(checked as boolean)}
@@ -207,9 +207,9 @@ const Login = () => {
                 </Link>
               </div>
 
-              <MedicalButton 
-                type="submit" 
-                variant="medical" 
+              <MedicalButton
+                type="submit"
+                variant="medical"
                 className="w-full"
                 disabled={loading}
               >
