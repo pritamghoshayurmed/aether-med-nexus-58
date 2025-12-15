@@ -1,34 +1,42 @@
 import { useState } from "react";
-import { 
-  Pill, 
-  Download, 
-  Eye, 
-  Search, 
-  Filter,
-  Calendar,
+import {
+  Pill,
+  Download,
+  Eye,
+  Search,
   User,
-  Clock,
-  AlertTriangle,
   RefreshCw,
-  ShoppingCart,
-  MapPin
+  Sparkles,
+  BookOpen
 } from "lucide-react";
 import { MedicalButton } from "@/components/ui/medical-button";
 import { MedicalCard, MedicalCardContent, MedicalCardHeader, MedicalCardTitle } from "@/components/ui/medical-card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
 
 const Prescriptions = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
+  const [isExplainOpen, setIsExplainOpen] = useState(false);
 
   const prescriptions = [
     {
       id: 1,
+      patientName: "Pritam Ghosh",
       medication: "Lisinopril 10mg",
       doctor: "Dr. Sarah Johnson",
       prescribedDate: "2024-01-15",
@@ -38,10 +46,12 @@ const Prescriptions = () => {
       refillsRemaining: 2,
       status: "active",
       condition: "Hypertension",
-      instructions: "Take with food, preferably in the morning"
+      instructions: "Take with food, preferably in the morning",
+      explanation: "Lisinopril is an ACE inhibitor used to treat high blood pressure (hypertension) in adults and children 6 years of age and older. It works by relaxing blood vessels so blood can flow more easily."
     },
     {
       id: 2,
+      patientName: "Pritam Ghosh",
       medication: "Metformin 500mg",
       doctor: "Dr. Michael Chen",
       prescribedDate: "2024-01-10",
@@ -51,10 +61,12 @@ const Prescriptions = () => {
       refillsRemaining: 5,
       status: "active",
       condition: "Type 2 Diabetes",
-      instructions: "Take with meals to reduce stomach upset"
+      instructions: "Take with meals to reduce stomach upset",
+      explanation: "Metformin is used to treat high blood sugar levels that are caused by type 2 diabetes. It helps your body respond better to insulin."
     },
     {
       id: 3,
+      patientName: "Riya Ghosh",
       medication: "Amoxicillin 500mg",
       doctor: "Dr. Priya Sharma",
       prescribedDate: "2023-12-20",
@@ -64,10 +76,12 @@ const Prescriptions = () => {
       refillsRemaining: 0,
       status: "expired",
       condition: "Bacterial Infection",
-      instructions: "Complete the full course even if feeling better"
+      instructions: "Complete the full course even if feeling better",
+      explanation: "Amoxicillin is a penicillin antibiotic that fights bacteria. It is used to treat many different types of infection caused by bacteria, such as tonsillitis, bronchitis, pneumonia, and infections of the ear, nose, throat, skin, or urinary tract."
     },
     {
       id: 4,
+      patientName: "Riya Ghosh",
       medication: "Atorvastatin 20mg",
       doctor: "Dr. Sarah Johnson",
       prescribedDate: "2024-01-08",
@@ -77,51 +91,8 @@ const Prescriptions = () => {
       refillsRemaining: 1,
       status: "expiring_soon",
       condition: "High Cholesterol",
-      instructions: "Take in the evening with or without food"
-    }
-  ];
-
-  const activeMedications = [
-    {
-      id: 1,
-      name: "Lisinopril 10mg",
-      nextDose: "Tomorrow, 8:00 AM",
-      progress: 75,
-      daysRemaining: 7
-    },
-    {
-      id: 2,
-      name: "Metformin 500mg",
-      nextDose: "Today, 7:00 PM",
-      progress: 45,
-      daysRemaining: 15
-    }
-  ];
-
-  const nearbyPharmacies = [
-    {
-      id: 1,
-      name: "Apollo Pharmacy",
-      distance: "0.5 km",
-      rating: 4.8,
-      availability: "In Stock",
-      deliveryTime: "30 mins"
-    },
-    {
-      id: 2,
-      name: "MedPlus",
-      distance: "1.2 km",
-      rating: 4.6,
-      availability: "Limited Stock",
-      deliveryTime: "45 mins"
-    },
-    {
-      id: 3,
-      name: "Wellness Forever",
-      distance: "2.0 km",
-      rating: 4.7,
-      availability: "In Stock",
-      deliveryTime: "60 mins"
+      instructions: "Take in the evening with or without food",
+      explanation: "Atorvastatin is used together with diet to lower blood levels of \"bad\" cholesterol (low-density lipoprotein, or LDL), to increase levels of \"good\" cholesterol (high-density lipoprotein, or HDL), and to lower triglycerides."
     }
   ];
 
@@ -143,6 +114,22 @@ const Prescriptions = () => {
     }
   };
 
+  const filteredPrescriptions = prescriptions.filter(p =>
+    p.medication.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.patientName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Group prescriptions by patient name
+  const groupedPrescriptions = filteredPrescriptions.reduce((acc, curr) => {
+    (acc[curr.patientName] = acc[curr.patientName] || []).push(curr);
+    return acc;
+  }, {} as Record<string, typeof prescriptions>);
+
+  const handleExplain = (prescription: any) => {
+    setSelectedPrescription(prescription);
+    setIsExplainOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-background p-3 sm:p-4 md:p-6 pb-20 sm:pb-24">
       <div className="max-w-7xl mx-auto">
@@ -150,254 +137,180 @@ const Prescriptions = () => {
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">
             <span className="gradient-text">My Prescriptions</span>
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Manage your medications and prescriptions</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage family medications and prescriptions</p>
         </div>
 
-        <Tabs defaultValue="prescriptions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
-            <TabsTrigger value="prescriptions" className="text-xs sm:text-sm">All Prescriptions</TabsTrigger>
-            <TabsTrigger value="active" className="text-xs sm:text-sm">Active Medications</TabsTrigger>
-            <TabsTrigger value="pharmacy" className="text-xs sm:text-sm">Find Pharmacy</TabsTrigger>
-          </TabsList>
+        {/* Search */}
+        <div className="mb-6 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by medication or patient name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-10 sm:h-12 bg-background/50 backdrop-blur-sm"
+          />
+        </div>
 
-          <TabsContent value="prescriptions" className="space-y-6">
-            {/* Search and Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search prescriptions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                  <SelectItem value="expiring_soon">Expiring Soon</SelectItem>
-                </SelectContent>
-              </Select>
-              <MedicalButton variant="outline" size="icon">
-                <Filter className="h-4 w-4" />
-              </MedicalButton>
-            </div>
-
-            {/* Prescriptions List */}
-            <div className="space-y-4">
-              {prescriptions.map((prescription) => (
-                <MedicalCard key={prescription.id} variant="glass">
-                  <MedicalCardHeader className="pb-3 sm:pb-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                          <Pill className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <MedicalCardTitle className="text-base sm:text-lg mb-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                            <span className="truncate">{prescription.medication}</span>
-                            <Badge 
-                              variant={getStatusColor(prescription.status)} 
-                              className="self-start text-xs"
-                            >
-                              {getStatusText(prescription.status)}
-                            </Badge>
-                          </MedicalCardTitle>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            For: {prescription.condition}
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">Dosage:</span>
-                              <p className="font-medium">{prescription.dosage}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Quantity:</span>
-                              <p className="font-medium">{prescription.quantity}</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Refills:</span>
-                              <p className="font-medium">{prescription.refillsRemaining} remaining</p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Valid Until:</span>
-                              <p className="font-medium">{new Date(prescription.validUntil).toLocaleDateString()}</p>
-                            </div>
-                          </div>
-                        </div>
+        {/* Prescriptions List - Accordion Style */}
+        <div className="space-y-4">
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {Object.entries(groupedPrescriptions).length > 0 ? (
+              Object.entries(groupedPrescriptions).map(([patientName, patientPrescriptions]) => (
+                <AccordionItem
+                  key={patientName}
+                  value={patientName}
+                  className="border border-border/50 rounded-xl bg-card/30 backdrop-blur-md overflow-hidden shadow-sm"
+                >
+                  <AccordionTrigger className="px-4 hover:no-underline bg-gradient-to-r from-primary/5 to-transparent">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-5 w-5 text-primary" />
                       </div>
-                    </div>
-                  </MedicalCardHeader>
-                  <MedicalCardContent className="pt-0">
-                    <div className="bg-muted/30 rounded-lg p-3 mb-3 sm:mb-4">
-                      <p className="text-sm">
-                        <span className="font-medium">Instructions:</span> {prescription.instructions}
-                      </p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <User className="h-4 w-4" />
-                          <span>{prescription.doctor}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>Prescribed: {new Date(prescription.prescribedDate).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
-                        <MedicalButton variant="outline" size="sm" className="w-full sm:w-auto">
-                          <Eye className="mr-1 h-4 w-4" />
-                          View
-                        </MedicalButton>
-                        <MedicalButton variant="outline" size="sm" className="w-full sm:w-auto">
-                          <Download className="mr-1 h-4 w-4" />
-                          Download
-                        </MedicalButton>
-                        {prescription.status === "active" && prescription.refillsRemaining > 0 && (
-                          <MedicalButton variant="medical" size="sm" className="w-full sm:w-auto">
-                            <RefreshCw className="mr-1 h-4 w-4" />
-                            Refill
-                          </MedicalButton>
-                        )}
-                      </div>
-                    </div>
-                  </MedicalCardContent>
-                </MedicalCard>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="active" className="space-y-6">
-            {/* Active Medications Tracking */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {activeMedications.map((medication) => (
-                <MedicalCard key={medication.id} variant="glass">
-                  <MedicalCardHeader>
-                    <MedicalCardTitle className="flex items-center">
-                      <Pill className="mr-2 h-5 w-5 text-primary" />
-                      {medication.name}
-                    </MedicalCardTitle>
-                  </MedicalCardHeader>
-                  <MedicalCardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm text-muted-foreground">Supply Remaining</span>
-                          <span className="text-sm font-medium">{medication.progress}%</span>
-                        </div>
-                        <Progress value={medication.progress} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {medication.daysRemaining} days remaining
+                      <div className="text-left">
+                        <p className="font-semibold text-foreground">{patientName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {patientPrescriptions.length} Prescription{patientPrescriptions.length !== 1 ? 's' : ''}
                         </p>
                       </div>
-                      <div className="flex items-center justify-between pt-4 border-t border-border/50">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Next Dose</p>
-                          <p className="font-medium">{medication.nextDose}</p>
-                        </div>
-                        <MedicalButton variant="medical" size="sm">
-                          <Clock className="mr-1 h-4 w-4" />
-                          Set Reminder
-                        </MedicalButton>
-                      </div>
                     </div>
-                  </MedicalCardContent>
-                </MedicalCard>
-              ))}
-            </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="pt-4 space-y-4">
+                      {patientPrescriptions.map((prescription) => (
+                        <MedicalCard key={prescription.id} variant="glass" className="bg-background/40 hover:bg-background/60 transition-colors">
+                          <MedicalCardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start space-x-3 flex-1">
+                                <div className="p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                                  <Pill className="h-5 w-5 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <MedicalCardTitle className="text-base sm:text-lg mb-1 flex flex-col sm:flex-row sm:items-center gap-2">
+                                    <span className="truncate">{prescription.medication}</span>
+                                    <Badge
+                                      variant={getStatusColor(prescription.status)}
+                                      className="self-start sm:self-center text-[10px] px-2 py-0.5 h-5"
+                                    >
+                                      {getStatusText(prescription.status)}
+                                    </Badge>
+                                  </MedicalCardTitle>
+                                  <p className="text-sm text-muted-foreground mb-1">
+                                    For: {prescription.condition}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </MedicalCardHeader>
+                          <MedicalCardContent className="pt-0">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-2 gap-x-4 text-sm mb-4">
+                              <div>
+                                <span className="text-xs text-muted-foreground block">Dosage</span>
+                                <span className="font-medium">{prescription.dosage}</span>
+                              </div>
+                              <div>
+                                <span className="text-xs text-muted-foreground block">Quantity</span>
+                                <span className="font-medium">{prescription.quantity}</span>
+                              </div>
+                              <div>
+                                <span className="text-xs text-muted-foreground block">Prescribed By</span>
+                                <span className="font-medium">{prescription.doctor}</span>
+                              </div>
+                              <div>
+                                <span className="text-xs text-muted-foreground block">Valid Until</span>
+                                <span className="font-medium">{new Date(prescription.validUntil).toLocaleDateString()}</span>
+                              </div>
+                            </div>
 
-            {/* Medication Reminders */}
-            <MedicalCard variant="glass" className="border-warning/20">
-              <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center text-warning">
-                  <AlertTriangle className="mr-2 h-5 w-5" />
-                  Medication Reminders
-                </MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="space-y-3">
-                  <div className="p-3 rounded-lg bg-warning/10">
-                    <p className="text-sm font-medium">Atorvastatin prescription expires in 5 days</p>
-                    <p className="text-xs text-muted-foreground">Contact your doctor for a refill</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-primary/10">
-                    <p className="text-sm font-medium">Time for your evening Metformin dose</p>
-                    <p className="text-xs text-muted-foreground">Take with dinner</p>
-                  </div>
+                            <div className="bg-muted/30 rounded-lg p-3 mb-4 border border-border/50">
+                              <p className="text-sm">
+                                <span className="font-medium text-foreground">Instructions:</span> {prescription.instructions}
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              {/* New Explainer Button */}
+                              <MedicalButton
+                                variant="medical"
+                                size="sm"
+                                className="flex-1 sm:flex-none"
+                                onClick={() => handleExplain(prescription)}
+                              >
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                Explain Med
+                              </MedicalButton>
+
+                              <MedicalButton variant="outline" size="sm" className="flex-1 sm:flex-none">
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </MedicalButton>
+                              <MedicalButton variant="outline" size="sm" className="flex-1 sm:flex-none">
+                                <Download className="mr-2 h-4 w-4" />
+                                Download PDF
+                              </MedicalButton>
+                              {prescription.status === "active" && prescription.refillsRemaining > 0 && (
+                                <MedicalButton variant="secondary" size="sm" className="flex-1 sm:flex-none">
+                                  <RefreshCw className="mr-2 h-4 w-4" />
+                                  Refill
+                                </MedicalButton>
+                              )}
+                            </div>
+                          </MedicalCardContent>
+                        </MedicalCard>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <div className="bg-muted/30 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
+                  <Pill className="h-8 w-8 text-muted-foreground" />
                 </div>
-              </MedicalCardContent>
-            </MedicalCard>
-          </TabsContent>
-
-          <TabsContent value="pharmacy" className="space-y-6">
-            {/* Pharmacy Search */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              <div className="relative flex-1">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search pharmacies near you..."
-                  className="pl-10"
-                />
+                <h3 className="text-lg font-semibold">No prescriptions found</h3>
+                <p className="text-muted-foreground">Try searching for a different medication or patient.</p>
               </div>
-              <MedicalButton variant="medical" className="w-full sm:w-auto">
-                <Search className="mr-2 h-4 w-4" />
-                Find Nearby
-              </MedicalButton>
+            )}
+          </Accordion>
+        </div>
+      </div>
+
+      <Dialog open={isExplainOpen} onOpenChange={setIsExplainOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Simplified Explanation
+            </DialogTitle>
+            <DialogDescription>
+              AI-generated explanation for {selectedPrescription?.medication}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-primary/5 p-4 rounded-xl border border-primary/20">
+              <h4 className="font-semibold text-primary mb-2 flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                What is this?
+              </h4>
+              <p className="text-sm leading-relaxed text-foreground/80">
+                {selectedPrescription?.explanation}
+              </p>
             </div>
 
-            {/* Nearby Pharmacies */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {nearbyPharmacies.map((pharmacy) => (
-                <MedicalCard key={pharmacy.id} variant="glass">
-                  <MedicalCardHeader>
-                    <MedicalCardTitle>{pharmacy.name}</MedicalCardTitle>
-                  </MedicalCardHeader>
-                  <MedicalCardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Distance:</span>
-                        <span className="font-medium">{pharmacy.distance}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Rating:</span>
-                        <span className="font-medium">⭐ {pharmacy.rating}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Availability:</span>
-                        <Badge 
-                          variant={pharmacy.availability === "In Stock" ? "default" : "secondary"}
-                          className="text-xs"
-                        >
-                          {pharmacy.availability}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Delivery:</span>
-                        <span className="font-medium">{pharmacy.deliveryTime}</span>
-                      </div>
-                      <div className="flex space-x-2 pt-3">
-                        <MedicalButton variant="outline" size="sm" className="flex-1">
-                          Call
-                        </MedicalButton>
-                        <MedicalButton variant="medical" size="sm" className="flex-1">
-                          <ShoppingCart className="mr-1 h-4 w-4" />
-                          Order
-                        </MedicalButton>
-                      </div>
-                    </div>
-                  </MedicalCardContent>
-                </MedicalCard>
-              ))}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Easy Instructions</h4>
+              <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                <div className="h-6 w-6 rounded-full bg-green-500/20 text-green-600 flex items-center justify-center text-xs font-bold shrink-0">1</div>
+                <p className="text-sm">{selectedPrescription?.instructions}</p>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+          </div>
+          <div className="flex justify-end">
+            <MedicalButton onClick={() => setIsExplainOpen(false)}>
+              Got it, thanks!
+            </MedicalButton>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <BottomNavigation userRole="patient" />
     </div>

@@ -113,12 +113,10 @@ const PatientDashboard = () => {
 
   // Quick Actions with features from requirements
   const quickActions = [
-    { icon: Mic, label: "Voice Search", variant: "medical" as const, path: "#voice", highlight: true },
-    { icon: Calendar, label: "Book Appointment", variant: "glass" as const, path: "/appointment/booking" },
-    { icon: Video, label: "Video Consult", variant: "glass" as const, path: "/dashboard/patient/video-call" },
-    { icon: Activity, label: "PPG Vital Scan", variant: "glass" as const, path: "/dashboard/patient/vitals" },
-    { icon: Users, label: "Family Vault", variant: "glass" as const, path: "/dashboard/patient/family-members" },
-    { icon: FileText, label: "Prescriptions", variant: "glass" as const, path: "/dashboard/patient/prescriptions" },
+    { icon: Calendar, label: "Book Appointment", variant: "glass" as const, path: "/appointment/booking", highlight: true },
+    { icon: Activity, label: "Scan your BP", variant: "glass" as const, path: "/dashboard/patient/vitals", highlight: false },
+    { icon: Users, label: "Family Vault", variant: "glass" as const, path: "/dashboard/patient/family-members", highlight: false },
+    { icon: FileText, label: "Prescriptions", variant: "glass" as const, path: "/dashboard/patient/prescriptions", highlight: false },
   ];
 
   return (
@@ -214,9 +212,98 @@ const PatientDashboard = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+        {/* Main Dashboard Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column - Health Context (Desktop: Left, Mobile: Second) */}
+          <div className="lg:col-span-3 space-y-6 order-2 lg:order-1">
+            {/* PPG Vitals Monitoring - FR-13 */}
+            <MedicalCard variant="glass">
+              <MedicalCardHeader>
+                <MedicalCardTitle className="flex items-center">
+                  <Heart className="mr-2 h-5 w-5 text-primary" />
+                  PPG Vital Scan
+                </MedicalCardTitle>
+              </MedicalCardHeader>
+              <MedicalCardContent>
+                {vitalsLoading ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {vitalsData.map((vital) => (
+                      <div key={vital.label} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 rounded-lg bg-primary/10">
+                            <vital.icon className={`h-4 w-4 ${vital.color}`} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{vital.label}</p>
+                            <p className="text-xs text-muted-foreground">{vital.status}</p>
+                          </div>
+                        </div>
+                        <span className="font-semibold text-primary">{vital.value}</span>
+                      </div>
+                    ))}
+                    {latestVitals && (
+                      <p className="text-xs text-muted-foreground text-center mt-2">
+                        Last updated: {new Date(latestVitals.recorded_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                )}
+                <MedicalButton
+                  variant="medical"
+                  className="w-full mt-4"
+                  onClick={() => window.location.href = '/dashboard/patient/vitals/measure'}
+                >
+                  <Activity className="mr-2 h-4 w-4" />
+                  Start PPG Scan
+                </MedicalButton>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Uses camera + flashlight for heart rate measurement
+                </p>
+              </MedicalCardContent>
+            </MedicalCard>
+
+            {/* Family Vault - FR-03 */}
+            <MedicalCard variant="glass">
+              <MedicalCardHeader>
+                <div className="flex items-center justify-between">
+                  <MedicalCardTitle className="flex items-center">
+                    <Users className="mr-2 h-5 w-5 text-primary" />
+                    Family Vault
+                  </MedicalCardTitle>
+                  <Badge variant="outline" className="text-xs">3/6</Badge>
+                </div>
+              </MedicalCardHeader>
+              <MedicalCardContent>
+                <div className="space-y-3">
+                  {['Self', 'Spouse', 'Child'].map((member, idx) => (
+                    <div key={member} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <User className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="text-sm font-medium">{member}</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  ))}
+                </div>
+                <MedicalButton
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => window.location.href = '/dashboard/patient/family-members'}
+                >
+                  Manage Family Profiles
+                </MedicalButton>
+              </MedicalCardContent>
+            </MedicalCard>
+          </div>
+
+          {/* Center Column - Main Actions (Desktop: Center, Mobile: First) */}
+          <div className="lg:col-span-6 space-y-6 order-1 lg:order-2">
             {/* Live Token Tracking - FR-07 */}
             {tokenData && (
               <MedicalCard variant="glass" className="border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
@@ -318,199 +405,10 @@ const PatientDashboard = () => {
                 </div>
               </MedicalCardContent>
             </MedicalCard>
-
-            {/* AI Health Assistant with Audio Rx - FR-20 */}
-            <MedicalCard variant="glass" className="medical-glow">
-              <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center">
-                  <Brain className="mr-2 h-5 w-5 text-primary" />
-                  AI Health Assistant
-                </MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="space-y-4">
-                  <div className="bg-gradient-to-r from-primary/10 to-success/10 rounded-xl p-4 border border-primary/20">
-                    <div className="flex items-start space-x-3">
-                      <div className="p-2 rounded-lg bg-primary/20">
-                        <Brain className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm mb-3">
-                          <span className="font-medium">AI Suggestion:</span> Based on your recent vitals,
-                          consider scheduling a routine cardiology check-up within the next month.
-                        </p>
-                        <MedicalButton size="sm" variant="medical">
-                          Schedule Check-up
-                        </MedicalButton>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Audio Prescription Feature */}
-                  <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Volume2 className="h-5 w-5 text-primary" />
-                        <span className="font-medium">Audio Prescriptions</span>
-                      </div>
-                      <Badge variant="outline" className="text-xs">New</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Listen to your prescriptions in your preferred language
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <MedicalButton size="sm" variant="outline">
-                        <Volume2 className="h-3 w-3 mr-1" />
-                        Play in Hindi
-                      </MedicalButton>
-                      <MedicalButton size="sm" variant="outline">
-                        <Volume2 className="h-3 w-3 mr-1" />
-                        Play in Bengali
-                      </MedicalButton>
-                    </div>
-                  </div>
-                </div>
-              </MedicalCardContent>
-            </MedicalCard>
-
-            {/* Offline Health Records - FR-21 */}
-            <MedicalCard variant="glass">
-              <MedicalCardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 rounded-lg bg-success/20">
-                      <Smartphone className="h-5 w-5 text-success" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Offline Health Records</h4>
-                      <p className="text-sm text-muted-foreground">Last 10 prescriptions cached</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="bg-success/10 text-success border-success/30">
-                      ✓ Synced
-                    </Badge>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-              </MedicalCardContent>
-            </MedicalCard>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* PPG Vitals Monitoring - FR-13 */}
-            <MedicalCard variant="glass">
-              <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center">
-                  <Heart className="mr-2 h-5 w-5 text-primary" />
-                  PPG Vital Scan
-                </MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                {vitalsLoading ? (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {vitalsData.map((vital) => (
-                      <div key={vital.label} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 rounded-lg bg-primary/10">
-                            <vital.icon className={`h-4 w-4 ${vital.color}`} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{vital.label}</p>
-                            <p className="text-xs text-muted-foreground">{vital.status}</p>
-                          </div>
-                        </div>
-                        <span className="font-semibold text-primary">{vital.value}</span>
-                      </div>
-                    ))}
-                    {latestVitals && (
-                      <p className="text-xs text-muted-foreground text-center mt-2">
-                        Last updated: {new Date(latestVitals.recorded_at).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                )}
-                <MedicalButton
-                  variant="medical"
-                  className="w-full mt-4"
-                  onClick={() => window.location.href = '/dashboard/patient/vitals/measure'}
-                >
-                  <Activity className="mr-2 h-4 w-4" />
-                  Start PPG Scan
-                </MedicalButton>
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Uses camera + flashlight for heart rate measurement
-                </p>
-              </MedicalCardContent>
-            </MedicalCard>
-
-            {/* Family Vault - FR-03 */}
-            <MedicalCard variant="glass">
-              <MedicalCardHeader>
-                <div className="flex items-center justify-between">
-                  <MedicalCardTitle className="flex items-center">
-                    <Users className="mr-2 h-5 w-5 text-primary" />
-                    Family Vault
-                  </MedicalCardTitle>
-                  <Badge variant="outline" className="text-xs">3/6</Badge>
-                </div>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="space-y-3">
-                  {['Self', 'Spouse', 'Child'].map((member, idx) => (
-                    <div key={member} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <User className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="text-sm font-medium">{member}</span>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  ))}
-                </div>
-                <MedicalButton
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={() => window.location.href = '/dashboard/patient/family-members'}
-                >
-                  Manage Family Profiles
-                </MedicalButton>
-              </MedicalCardContent>
-            </MedicalCard>
-
-            {/* Payment Methods - FR-16 */}
-            <MedicalCard variant="glass">
-              <MedicalCardHeader>
-                <MedicalCardTitle className="flex items-center">
-                  <CreditCard className="mr-2 h-5 w-5 text-primary" />
-                  Payment Options
-                </MedicalCardTitle>
-              </MedicalCardHeader>
-              <MedicalCardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-center space-x-2">
-                      <Wallet className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium">Kabiraj Wallet</span>
-                    </div>
-                    <span className="text-sm font-semibold text-primary">{walletBalance}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="text-xs">GPay</Badge>
-                    <Badge variant="outline" className="text-xs">PhonePe</Badge>
-                    <Badge variant="outline" className="text-xs">UPI</Badge>
-                    <Badge variant="outline" className="text-xs">Cards</Badge>
-                  </div>
-                </div>
-              </MedicalCardContent>
-            </MedicalCard>
-
+          {/* Right Column - Utilities (Desktop: Right, Mobile: Third) */}
+          <div className="lg:col-span-3 space-y-6 order-3 lg:order-3">
             {/* Nearby Resources */}
             <MedicalCard variant="glass">
               <MedicalCardHeader>
@@ -585,6 +483,33 @@ const PatientDashboard = () => {
                       <p className="text-sm text-muted-foreground">No nearby facilities found</p>
                     </div>
                   )}
+                </div>
+              </MedicalCardContent>
+            </MedicalCard>
+
+            {/* Payment Methods - FR-16 */}
+            <MedicalCard variant="glass">
+              <MedicalCardHeader>
+                <MedicalCardTitle className="flex items-center">
+                  <CreditCard className="mr-2 h-5 w-5 text-primary" />
+                  Payment Options
+                </MedicalCardTitle>
+              </MedicalCardHeader>
+              <MedicalCardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center space-x-2">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <span className="text-sm font-medium">Kabiraj Wallet</span>
+                    </div>
+                    <span className="text-sm font-semibold text-primary">{walletBalance}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="text-xs">GPay</Badge>
+                    <Badge variant="outline" className="text-xs">PhonePe</Badge>
+                    <Badge variant="outline" className="text-xs">UPI</Badge>
+                    <Badge variant="outline" className="text-xs">Cards</Badge>
+                  </div>
                 </div>
               </MedicalCardContent>
             </MedicalCard>
